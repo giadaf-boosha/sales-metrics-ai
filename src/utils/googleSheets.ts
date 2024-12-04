@@ -1,7 +1,7 @@
 import { sheets_v4 } from '@googleapis/sheets';
 
-const SPREADSHEET_ID = process.env.VITE_GOOGLE_SHEETS_ID;
-const API_KEY = process.env.VITE_GOOGLE_API_KEY;
+const SPREADSHEET_ID = import.meta.env.VITE_GOOGLE_SHEETS_ID;
+const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 
 export interface SalesData {
   month: string;
