@@ -1,4 +1,3 @@
-import { sheets_v4 } from '@googleapis/sheets';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -28,23 +27,32 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
       throw new Error('User not authenticated');
     }
 
+    console.log("Fetching sheet config for user:", user.id);
     const { data: sheetConfig, error: configError } = await supabase
       .from('google_sheets_config')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    console.log('Sheet config:', sheetConfig);
-    console.log('Config error:', configError);
+    if (configError) {
+      console.error('Error fetching sheet config:', configError);
+      toast.error('Error fetching Google Sheet configuration');
+      throw new Error('Failed to fetch sheet configuration');
+    }
 
-    if (configError || !sheetConfig) {
+    if (!sheetConfig) {
       console.error('No Google Sheet configuration found');
       toast.error('Please configure your Google Sheet first');
       throw new Error('No Google Sheet configured');
     }
 
+    console.log("Sheet config found:", {
+      sheet_id: sheetConfig.sheet_id,
+      sheet_name: sheetConfig.sheet_name
+    });
+
     if (!sheetConfig.sheet_id || !sheetConfig.sheet_name) {
-      console.error('Invalid sheet configuration');
+      console.error('Invalid sheet configuration:', sheetConfig);
       toast.error('Invalid Google Sheet configuration');
       throw new Error('Invalid sheet configuration');
     }
@@ -57,12 +65,18 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
     );
     
     if (!response.ok) {
-      console.error('Google Sheets API error:', response.status, response.statusText);
+      console.error('Google Sheets API error:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+      const responseText = await response.text();
+      console.error('Response text:', responseText);
       toast.error('Failed to fetch data from Google Sheets');
-      throw new Error('Failed to fetch data from Google Sheets');
+      throw new Error(`Failed to fetch data from Google Sheets: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
+    console.log("Received data from Google Sheets:", data);
     
     if (!data.values || !Array.isArray(data.values)) {
       console.error('Invalid data format received:', data);
@@ -71,14 +85,7 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
     }
 
     const transformedData = transformSheetData(data.values);
-
-    // Log the second and last rows if they exist
-    if (transformedData.length >= 2) {
-      console.log('Second row of data:', transformedData[1]);
-    }
-    if (transformedData.length > 0) {
-      console.log('Last row of data:', transformedData[transformedData.length - 1]);
-    }
+    console.log("Transformed data:", transformedData);
 
     return transformedData;
   } catch (error) {
