@@ -45,7 +45,17 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
     }
 
     const data = await response.json();
-    return transformSheetData(data.values);
+    const transformedData = transformSheetData(data.values);
+
+    // Log the second and last rows if they exist
+    if (transformedData.length >= 2) {
+      console.log('Second row of data:', transformedData[1]);
+    }
+    if (transformedData.length > 0) {
+      console.log('Last row of data:', transformedData[transformedData.length - 1]);
+    }
+
+    return transformedData;
   } catch (error) {
     console.error('Error fetching sales data:', error);
     throw error;
