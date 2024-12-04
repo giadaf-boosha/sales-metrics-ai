@@ -2,6 +2,35 @@ import { KpiCard } from "@/components/KpiCard";
 import { SalesChart } from "@/components/SalesChart";
 
 const Index = () => {
+  // Temporary mock data - will be replaced with real data integration later
+  const kpiData = {
+    totalOpportunities: {
+      value: "1,234",
+      trend: 15.8,
+      title: "Total Opportunities",
+    },
+    totalRevenue: {
+      value: "$845,000",
+      trend: 12.5,
+      title: "Total Revenue",
+    },
+    avgContractValue: {
+      value: "$28,500",
+      trend: -4.2,
+      title: "Average Contract Value",
+    },
+    winRate: {
+      value: "68%",
+      trend: 8.4,
+      title: "Win Rate",
+    },
+    pipelineVelocity: {
+      value: "25.4",
+      trend: 5.7,
+      title: "Pipeline Velocity",
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-7xl">
@@ -12,31 +41,16 @@ const Index = () => {
           </p>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <KpiCard
-            title="Total Revenue"
-            value="$54,234"
-            trend={12.5}
-            className="[animation-delay:100ms]"
-          />
-          <KpiCard
-            title="Total Orders"
-            value="1,234"
-            trend={-4.2}
-            className="[animation-delay:200ms]"
-          />
-          <KpiCard
-            title="Average Order Value"
-            value="$234"
-            trend={2.4}
-            className="[animation-delay:300ms]"
-          />
-          <KpiCard
-            title="Conversion Rate"
-            value="3.2%"
-            trend={0}
-            className="[animation-delay:400ms]"
-          />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Object.values(kpiData).map((kpi, index) => (
+            <KpiCard
+              key={kpi.title}
+              title={kpi.title}
+              value={kpi.value}
+              trend={kpi.trend}
+              className={`[animation-delay:${index * 100}ms]`}
+            />
+          ))}
         </div>
 
         <div className="mt-8">
