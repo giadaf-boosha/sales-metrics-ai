@@ -1,4 +1,5 @@
 import { sheets_v4 } from '@googleapis/sheets';
+import { supabase } from "@/integrations/supabase/client";
 
 const SPREADSHEET_ID = import.meta.env.VITE_GOOGLE_SHEETS_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
