@@ -4,22 +4,52 @@ import { ChannelChart } from "@/components/ChannelChart";
 import { PipelineFunnel } from "@/components/PipelineFunnel";
 import { TimeRangeFilter } from "@/components/TimeRangeFilter";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSalesData, type SalesData } from "@/utils/googleSheets";
+import { useState } from "react";
 
 const Index = () => {
-  // Temporary mock data - will be replaced with real data integration later
+  const [timeRange, setTimeRange] = useState("month");
+  
+  const { data: salesData, isLoading, error } = useQuery({
+    queryKey: ["sales", timeRange],
+    queryFn: () => fetchSalesData(getSheetRange(timeRange)),
+  });
+
+  const getSheetRange = (range: string) => {
+    switch (range) {
+      case "month":
+        return "Sales!A1:D31"; // Current month data
+      case "quarter":
+        return "Sales!A1:D91"; // Current quarter data
+      case "year":
+        return "Sales!A1:D366"; // Current year data
+      default:
+        return "Sales!A1:D31";
+    }
+  };
+
+  // Calculate KPI data from the fetched sales data
   const kpiData = {
     totalOpportunities: {
-      value: "1,234",
+      value: salesData ? salesData.reduce((sum, d) => sum + d.opportunities, 0).toLocaleString() : "0",
       trend: 15.8,
       title: "Total Opportunities",
     },
     totalRevenue: {
-      value: "$845,000",
+      value: salesData 
+        ? `$${(salesData.reduce((sum, d) => sum + d.revenue, 0) / 1000).toLocaleString()}k`
+        : "$0",
       trend: 12.5,
       title: "Total Revenue",
     },
     avgContractValue: {
-      value: "$28,500",
+      value: salesData
+        ? `$${Math.round(
+            salesData.reduce((sum, d) => sum + d.revenue, 0) /
+            salesData.reduce((sum, d) => sum + d.opportunities, 0)
+          ).toLocaleString()}`
+        : "$0",
       trend: -4.2,
       title: "Average Contract Value",
     },
@@ -36,9 +66,13 @@ const Index = () => {
   };
 
   const handleFilterChange = (value: string) => {
-    // This will be replaced with actual data fetching logic
-    toast.info(`Filter changed to: ${value}`);
+    setTimeRange(value);
+    toast.info(`Updating dashboard for ${value} view`);
   };
+
+  if (error) {
+    toast.error("Failed to load dashboard data");
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -68,7 +102,7 @@ const Index = () => {
         </div>
 
         <div className="mt-8 grid gap-8 md:grid-cols-2">
-          <TrendChart />
+          <TrendChart data={salesData} isLoading={isLoading} />
           <ChannelChart />
         </div>
 

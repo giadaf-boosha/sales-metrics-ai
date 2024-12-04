@@ -7,17 +7,22 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { SalesData } from "@/utils/googleSheets";
 
-const data = [
-  { month: "Jan", revenue: 840000, opportunities: 180 },
-  { month: "Feb", revenue: 920000, opportunities: 220 },
-  { month: "Mar", revenue: 880000, opportunities: 200 },
-  { month: "Apr", revenue: 950000, opportunities: 240 },
-  { month: "May", revenue: 1020000, opportunities: 260 },
-  { month: "Jun", revenue: 980000, opportunities: 230 },
-];
+interface TrendChartProps {
+  data?: SalesData[];
+  isLoading?: boolean;
+}
 
-export function TrendChart() {
+export function TrendChart({ data, isLoading }: TrendChartProps) {
+  if (isLoading) {
+    return (
+      <div className="h-[400px] w-full rounded-xl bg-white p-6 shadow-sm animate-pulse">
+        <div className="h-full w-full bg-gray-100 rounded-lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="h-[400px] w-full rounded-xl bg-white p-6 shadow-sm animate-fade-in">
       <h3 className="mb-6 text-lg font-semibold">Revenue & Opportunities Trend</h3>
