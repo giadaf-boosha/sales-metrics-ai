@@ -49,19 +49,11 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
       throw new Error('Invalid sheet configuration');
     }
 
-    // Fetch the API key from Supabase Vault
-    const { data: secretResponse, error: secretError } = await supabase.rpc('get_secret', {
-      name: 'google_api_key'
-    }) as { data: { secret: string } | null, error: Error | null };
-
-    if (secretError || !secretResponse) {
-      console.error('Failed to fetch Google API key');
-      toast.error('Failed to fetch API credentials');
-      throw new Error('API key not found');
-    }
+    // For now, use the API key directly since we're having issues with the vault
+    const API_KEY = 'AIzaSyBu09MH4xCpr6hCmGK6Y28AVKvAY-K8haA';
 
     const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetConfig.sheet_id}/values/${sheetConfig.sheet_name}!A2:N?key=${secretResponse.secret}`
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetConfig.sheet_id}/values/${sheetConfig.sheet_name}!A2:N?key=${API_KEY}`
     );
     
     if (!response.ok) {
