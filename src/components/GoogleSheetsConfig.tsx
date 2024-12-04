@@ -21,7 +21,10 @@ export function GoogleSheetsConfig() {
   const fetchCurrentConfig = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast.error("You must be logged in to configure Google Sheets");
+        return;
+      }
 
       const { data, error } = await supabase
         .from('google_sheets_config')
@@ -29,8 +32,9 @@ export function GoogleSheetsConfig() {
         .eq('user_id', user.id)
         .single();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
         console.error("Error fetching config:", error);
+        setError(error.message);
         return;
       }
 
@@ -41,6 +45,7 @@ export function GoogleSheetsConfig() {
       }
     } catch (err) {
       console.error("Error fetching current config:", err);
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
     }
   };
 
@@ -57,20 +62,12 @@ export function GoogleSheetsConfig() {
         return;
       }
 
-      console.log("Submitting config:", {
-        user_id: user.id,
-        sheet_id: sheetId,
-        sheet_name: sheetName
-      });
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('google_sheets_config')
         .upsert({
           user_id: user.id,
           sheet_id: sheetId,
-          sheet_name: sheetName,
-        }, {
-          onConflict: 'user_id'
+          sheet_name: sheetName
         });
 
       if (error) {
@@ -80,7 +77,6 @@ export function GoogleSheetsConfig() {
         return;
       }
 
-      console.log("Config saved successfully:", data);
       toast.success("Google Sheet configured successfully!");
       await fetchCurrentConfig();
     } catch (error) {
