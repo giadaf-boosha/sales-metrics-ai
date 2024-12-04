@@ -5,16 +5,31 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import type { SalesData } from "@/utils/googleSheets";
 
-const data = [
-  { value: 1200, name: "Total Opportunities", fill: "#6366f1" },
-  { value: 850, name: "Qualified", fill: "#8b5cf6" },
-  { value: 400, name: "Proposal", fill: "#a855f7" },
-  { value: 200, name: "Negotiation", fill: "#d946ef" },
-  { value: 120, name: "Closed Won", fill: "#22c55e" },
-];
+interface PipelineFunnelProps {
+  data?: SalesData[];
+}
 
-export function PipelineFunnel() {
+export function PipelineFunnel({ data }: PipelineFunnelProps) {
+  const funnelData = React.useMemo(() => {
+    if (!data) return [];
+
+    const totalOpportunities = data.length;
+    const meetingsScheduled = data.filter(d => d.meetingScheduled).length;
+    const meetingsCompleted = data.filter(d => d.meetingCompleted).length;
+    const proposalsSent = data.filter(d => d.proposalSent).length;
+    const contractsClosed = data.filter(d => d.contractsClosed).length;
+
+    return [
+      { value: totalOpportunities, name: "Total Opportunities", fill: "#6366f1" },
+      { value: meetingsScheduled, name: "Meetings Scheduled", fill: "#8b5cf6" },
+      { value: meetingsCompleted, name: "Meetings Completed", fill: "#a855f7" },
+      { value: proposalsSent, name: "Proposals Sent", fill: "#d946ef" },
+      { value: contractsClosed, name: "Contracts Closed", fill: "#22c55e" },
+    ];
+  }, [data]);
+
   return (
     <div className="h-[400px] w-full rounded-xl bg-white p-6 shadow-sm animate-fade-in">
       <h3 className="mb-6 text-lg font-semibold">Sales Pipeline</h3>
@@ -30,7 +45,7 @@ export function PipelineFunnel() {
           />
           <Funnel
             dataKey="value"
-            data={data}
+            data={funnelData}
             isAnimationActive
           >
             <LabelList

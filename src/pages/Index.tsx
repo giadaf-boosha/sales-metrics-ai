@@ -17,7 +17,7 @@ const Index = () => {
   
   const { data: salesData, isLoading, error } = useQuery({
     queryKey: ["sales", timeRange],
-    queryFn: () => fetchSalesData(getSheetRange(timeRange)),
+    queryFn: () => fetchSalesData(timeRange),
   });
 
   const handleLogout = async () => {
@@ -25,52 +25,42 @@ const Index = () => {
     navigate("/login");
   };
 
-  const getSheetRange = (range: string) => {
-    switch (range) {
-      case "month":
-        return "Sales!A1:D31"; // Current month data
-      case "quarter":
-        return "Sales!A1:D91"; // Current quarter data
-      case "year":
-        return "Sales!A1:D366"; // Current year data
-      default:
-        return "Sales!A1:D31";
-    }
-  };
-
   // Calculate KPI data from the fetched sales data
   const kpiData = {
     totalOpportunities: {
-      value: salesData ? salesData.reduce((sum, d) => sum + d.opportunities, 0).toLocaleString() : "0",
+      value: salesData ? salesData.length.toLocaleString() : "0",
       trend: 15.8,
       title: "Total Opportunities",
     },
-    totalRevenue: {
+    totalValue: {
       value: salesData 
-        ? `$${(salesData.reduce((sum, d) => sum + d.revenue, 0) / 1000).toLocaleString()}k`
-        : "$0",
+        ? `€${(salesData.reduce((sum, d) => sum + d.value, 0) / 1000).toLocaleString()}k`
+        : "€0",
       trend: 12.5,
-      title: "Total Revenue",
+      title: "Total Pipeline Value",
     },
-    avgContractValue: {
-      value: salesData
-        ? `$${Math.round(
-            salesData.reduce((sum, d) => sum + d.revenue, 0) /
-            salesData.reduce((sum, d) => sum + d.opportunities, 0)
+    avgDealValue: {
+      value: salesData && salesData.length > 0
+        ? `€${Math.round(
+            salesData.reduce((sum, d) => sum + d.value, 0) / salesData.length
           ).toLocaleString()}`
-        : "$0",
+        : "€0",
       trend: -4.2,
-      title: "Average Contract Value",
+      title: "Average Deal Value",
     },
-    winRate: {
-      value: "68%",
+    proposalRate: {
+      value: salesData && salesData.length > 0
+        ? `${Math.round((salesData.filter(d => d.proposalSent).length / salesData.length) * 100)}%`
+        : "0%",
       trend: 8.4,
-      title: "Win Rate",
+      title: "Proposal Rate",
     },
-    pipelineVelocity: {
-      value: "25.4",
+    closedDeals: {
+      value: salesData 
+        ? salesData.filter(d => d.contractsClosed).length.toString()
+        : "0",
       trend: 5.7,
-      title: "Pipeline Velocity",
+      title: "Closed Deals",
     }
   };
 
@@ -122,11 +112,11 @@ const Index = () => {
 
         <div className="mt-8 grid gap-8 md:grid-cols-2">
           <TrendChart data={salesData} isLoading={isLoading} />
-          <ChannelChart />
+          <ChannelChart data={salesData} />
         </div>
 
         <div className="mt-8">
-          <PipelineFunnel />
+          <PipelineFunnel data={salesData} />
         </div>
       </div>
     </div>

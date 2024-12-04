@@ -7,21 +7,35 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { SalesData } from "@/utils/googleSheets";
 
-const data = [
-  { channel: "Direct", revenue: 540000, opportunities: 120 },
-  { channel: "Partners", revenue: 420000, opportunities: 95 },
-  { channel: "Online", revenue: 380000, opportunities: 85 },
-  { channel: "Referral", revenue: 280000, opportunities: 65 },
-];
+interface ChannelChartProps {
+  data?: SalesData[];
+}
 
-export function ChannelChart() {
+export function ChannelChart({ data }: ChannelChartProps) {
+  const channelData = React.useMemo(() => {
+    if (!data) return [];
+
+    const channelStats = data.reduce((acc, curr) => {
+      const channel = curr.channel || 'Other';
+      if (!acc[channel]) {
+        acc[channel] = { channel, value: 0, count: 0 };
+      }
+      acc[channel].value += curr.value;
+      acc[channel].count += 1;
+      return acc;
+    }, {} as Record<string, { channel: string; value: number; count: number }>);
+
+    return Object.values(channelStats);
+  }, [data]);
+
   return (
     <div className="h-[400px] w-full rounded-xl bg-white p-6 shadow-sm animate-fade-in">
       <h3 className="mb-6 text-lg font-semibold">Channel Performance</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
-          data={data}
+          data={channelData}
           margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -33,15 +47,15 @@ export function ChannelChart() {
             axisLine={false}
           />
           <YAxis
-            yAxisId="revenue"
+            yAxisId="value"
             stroke="#94a3b8"
             fontSize={12}
             tickLine={false}
             axisLine={false}
-            tickFormatter={(value) => `$${value/1000}k`}
+            tickFormatter={(value) => `€${value/1000}k`}
           />
           <YAxis
-            yAxisId="opportunities"
+            yAxisId="count"
             orientation="right"
             stroke="#94a3b8"
             fontSize={12}
@@ -57,14 +71,14 @@ export function ChannelChart() {
             }}
           />
           <Bar
-            yAxisId="revenue"
-            dataKey="revenue"
+            yAxisId="value"
+            dataKey="value"
             fill="#6366f1"
             radius={[4, 4, 0, 0]}
           />
           <Bar
-            yAxisId="opportunities"
-            dataKey="opportunities"
+            yAxisId="count"
+            dataKey="count"
             fill="#22c55e"
             radius={[4, 4, 0, 0]}
           />
