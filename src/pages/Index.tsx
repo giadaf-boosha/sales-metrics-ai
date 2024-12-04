@@ -5,16 +5,24 @@ import { PipelineFunnel } from "@/components/PipelineFunnel";
 import { TimeRangeFilter } from "@/components/TimeRangeFilter";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { fetchSalesData, type SalesData } from "@/utils/googleSheets";
+import { fetchSalesData } from "@/utils/googleSheets";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
+  const navigate = useNavigate();
   
   const { data: salesData, isLoading, error } = useQuery({
     queryKey: ["sales", timeRange],
     queryFn: () => fetchSalesData(getSheetRange(timeRange)),
   });
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login");
+  };
 
   const getSheetRange = (range: string) => {
     switch (range) {
@@ -85,7 +93,15 @@ const Index = () => {
                 Track your sales performance and metrics
               </p>
             </div>
-            <TimeRangeFilter onFilterChange={handleFilterChange} />
+            <div className="flex items-center gap-4">
+              <TimeRangeFilter onFilterChange={handleFilterChange} />
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </header>
 
