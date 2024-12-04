@@ -50,18 +50,18 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
     }
 
     // Fetch the API key from Supabase Vault
-    const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
+    const { data: secretResponse, error: secretError } = await supabase.rpc('get_secret', {
       name: 'google_api_key'
-    });
+    }) as { data: { secret: string } | null, error: Error | null };
 
-    if (secretError || !secretData) {
+    if (secretError || !secretResponse) {
       console.error('Failed to fetch Google API key');
       toast.error('Failed to fetch API credentials');
       throw new Error('API key not found');
     }
 
     const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetConfig.sheet_id}/values/${sheetConfig.sheet_name}!A2:N?key=${secretData}`
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetConfig.sheet_id}/values/${sheetConfig.sheet_name}!A2:N?key=${secretResponse.secret}`
     );
     
     if (!response.ok) {
