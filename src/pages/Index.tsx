@@ -1,5 +1,7 @@
 import { KpiCard } from "@/components/KpiCard";
-import { SalesChart } from "@/components/SalesChart";
+import { TrendChart } from "@/components/TrendChart";
+import { ChannelChart } from "@/components/ChannelChart";
+import { PipelineFunnel } from "@/components/PipelineFunnel";
 
 const Index = () => {
   // Temporary mock data - will be replaced with real data integration later
@@ -53,8 +55,13 @@ const Index = () => {
           ))}
         </div>
 
+        <div className="mt-8 grid gap-8 md:grid-cols-2">
+          <TrendChart />
+          <ChannelChart />
+        </div>
+
         <div className="mt-8">
-          <SalesChart />
+          <PipelineFunnel />
         </div>
       </div>
     </div>
