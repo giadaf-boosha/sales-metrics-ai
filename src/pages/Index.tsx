@@ -10,6 +10,8 @@ import { fetchSalesData } from "@/utils/googleSheets";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
@@ -18,6 +20,7 @@ const Index = () => {
   const { data: salesData, isLoading, error } = useQuery({
     queryKey: ["sales", timeRange],
     queryFn: () => fetchSalesData(timeRange),
+    retry: false
   });
 
   const handleLogout = async () => {
@@ -69,10 +72,6 @@ const Index = () => {
     toast.info(`Updating dashboard for ${value} view`);
   };
 
-  if (error) {
-    toast.error("Failed to load dashboard data");
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-7xl">
@@ -98,26 +97,41 @@ const Index = () => {
 
         <GoogleSheetsConfig />
 
-        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Object.values(kpiData).map((kpi, index) => (
-            <KpiCard
-              key={kpi.title}
-              title={kpi.title}
-              value={kpi.value}
-              trend={kpi.trend}
-              className={`[animation-delay:${index * 100}ms]`}
-            />
-          ))}
-        </div>
+        {error && (
+          <Alert variant="destructive" className="mb-8">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error instanceof Error && error.message === 'No Google Sheet configured'
+                ? 'Please configure your Google Sheet above to view the dashboard.'
+                : 'Failed to load dashboard data. Please try again later.'}
+            </AlertDescription>
+          </Alert>
+        )}
 
-        <div className="mt-8 grid gap-8 md:grid-cols-2">
-          <TrendChart data={salesData} isLoading={isLoading} />
-          <ChannelChart data={salesData} />
-        </div>
+        {!error && (
+          <>
+            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Object.values(kpiData).map((kpi, index) => (
+                <KpiCard
+                  key={kpi.title}
+                  title={kpi.title}
+                  value={kpi.value}
+                  trend={kpi.trend}
+                  className={`[animation-delay:${index * 100}ms]`}
+                />
+              ))}
+            </div>
 
-        <div className="mt-8">
-          <PipelineFunnel data={salesData} />
-        </div>
+            <div className="mt-8 grid gap-8 md:grid-cols-2">
+              <TrendChart data={salesData} isLoading={isLoading} />
+              <ChannelChart data={salesData} />
+            </div>
+
+            <div className="mt-8">
+              <PipelineFunnel data={salesData} />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
