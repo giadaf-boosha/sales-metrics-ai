@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export interface SalesData {
-  sales: string;
   channel: string;
   meetingScheduled: string;
   meetingCompleted: string;
@@ -15,6 +14,7 @@ export interface SalesData {
   personName: string;
   role: string;
   sector: string;
+  closingTime?: number;
 }
 
 export async function fetchSalesData(range: string): Promise<SalesData[]> {
@@ -98,7 +98,6 @@ function transformSheetData(values: any[][]): SalesData[] {
   if (!values) return [];
   
   return values.map(row => ({
-    sales: row[0] || '',
     channel: row[1] || '',
     meetingScheduled: row[2] || '',
     meetingCompleted: row[3] || '',
@@ -110,6 +109,7 @@ function transformSheetData(values: any[][]): SalesData[] {
     company: row[11] || '',
     personName: row[12] || '',
     role: row[13] || '',
-    sector: row[14] || ''
+    sector: row[14] || '',
+    closingTime: parseFloat(row[15] || '0')
   }));
 }

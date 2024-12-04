@@ -1,9 +1,7 @@
 import { KpiCard } from "@/components/KpiCard";
-import { TrendChart } from "@/components/TrendChart";
-import { ChannelChart } from "@/components/ChannelChart";
-import { PipelineFunnel } from "@/components/PipelineFunnel";
 import { TimeRangeFilter } from "@/components/TimeRangeFilter";
 import { GoogleSheetsConfig } from "@/components/GoogleSheetsConfig";
+import { SummaryTable } from "@/components/SummaryTable";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSalesData } from "@/utils/googleSheets";
@@ -28,48 +26,45 @@ const Index = () => {
     navigate("/login");
   };
 
-  // Calculate KPI data from the fetched sales data
+  // Calcola i KPI dai dati
   const kpiData = {
     totalOpportunities: {
-      value: salesData ? salesData.length.toLocaleString() : "0",
-      trend: 15.8,
-      title: "Total Opportunities",
+      value: salesData ? salesData.length : 0,
+      title: "Opportunità Totali",
     },
-    totalValue: {
+    wonOpportunities: {
+      value: salesData ? salesData.filter(d => d.contractsClosed === 'true').length : 0,
+      title: "Opportunità Vinte",
+    },
+    totalRevenue: {
       value: salesData 
-        ? `€${(salesData.reduce((sum, d) => sum + d.value, 0) / 1000).toLocaleString()}k`
-        : "€0",
-      trend: 12.5,
-      title: "Total Pipeline Value",
+        ? `€${salesData.reduce((sum, d) => sum + (d.value || 0), 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`
+        : "€0,00",
+      title: "Revenue Totale",
     },
-    avgDealValue: {
+    winRate: {
       value: salesData && salesData.length > 0
-        ? `€${Math.round(
-            salesData.reduce((sum, d) => sum + d.value, 0) / salesData.length
-          ).toLocaleString()}`
-        : "€0",
-      trend: -4.2,
-      title: "Average Deal Value",
+        ? `${((salesData.filter(d => d.contractsClosed === 'true').length / salesData.length) * 100).toFixed(2)}%`
+        : "0,00%",
+      title: "Win Rate",
     },
-    proposalRate: {
+    lostRate: {
       value: salesData && salesData.length > 0
-        ? `${Math.round((salesData.filter(d => d.proposalSent).length / salesData.length) * 100)}%`
-        : "0%",
-      trend: 8.4,
-      title: "Proposal Rate",
+        ? `${((salesData.filter(d => d.status === 'Lost').length / salesData.length) * 100).toFixed(2)}%`
+        : "0,00%",
+      title: "Lost Rate",
     },
-    closedDeals: {
-      value: salesData 
-        ? salesData.filter(d => d.contractsClosed).length.toString()
-        : "0",
-      trend: 5.7,
-      title: "Closed Deals",
+    pipelineVelocity: {
+      value: salesData
+        ? `€${(salesData.reduce((sum, d) => sum + (d.value || 0), 0) / Math.max(1, salesData.length)).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`
+        : "€0,00",
+      title: "Pipeline Velocity",
     }
   };
 
   const handleFilterChange = (value: string) => {
     setTimeRange(value);
-    toast.info(`Updating dashboard for ${value} view`);
+    toast.info(`Aggiornamento dashboard per il periodo: ${value}`);
   };
 
   return (
@@ -80,7 +75,7 @@ const Index = () => {
             <div>
               <h1 className="text-3xl font-semibold">Sales Analytics</h1>
               <p className="mt-2 text-muted-foreground">
-                Track your sales performance and metrics
+                Monitora le tue performance di vendita
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -102,8 +97,8 @@ const Index = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               {error instanceof Error && error.message === 'No Google Sheet configured'
-                ? 'Please configure your Google Sheet above to view the dashboard.'
-                : 'Failed to load dashboard data. Please try again later.'}
+                ? 'Configura il tuo Google Sheet sopra per visualizzare la dashboard.'
+                : 'Errore nel caricamento dei dati. Riprova più tardi.'}
             </AlertDescription>
           </Alert>
         )}
@@ -116,19 +111,13 @@ const Index = () => {
                   key={kpi.title}
                   title={kpi.title}
                   value={kpi.value}
-                  trend={kpi.trend}
                   className={`[animation-delay:${index * 100}ms]`}
                 />
               ))}
             </div>
 
-            <div className="mt-8 grid gap-8 md:grid-cols-2">
-              <TrendChart data={salesData} isLoading={isLoading} />
-              <ChannelChart data={salesData} />
-            </div>
-
             <div className="mt-8">
-              <PipelineFunnel data={salesData} />
+              <SummaryTable data={salesData} />
             </div>
           </>
         )}
