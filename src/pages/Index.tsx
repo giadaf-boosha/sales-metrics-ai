@@ -2,6 +2,8 @@ import { KpiCard } from "@/components/KpiCard";
 import { TrendChart } from "@/components/TrendChart";
 import { ChannelChart } from "@/components/ChannelChart";
 import { PipelineFunnel } from "@/components/PipelineFunnel";
+import { TimeRangeFilter } from "@/components/TimeRangeFilter";
+import { toast } from "sonner";
 
 const Index = () => {
   // Temporary mock data - will be replaced with real data integration later
@@ -33,14 +35,24 @@ const Index = () => {
     }
   };
 
+  const handleFilterChange = (value: string) => {
+    // This will be replaced with actual data fetching logic
+    toast.info(`Filter changed to: ${value}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-7xl">
         <header className="mb-8">
-          <h1 className="text-3xl font-semibold">Sales Analytics</h1>
-          <p className="mt-2 text-muted-foreground">
-            Track your sales performance and metrics
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-semibold">Sales Analytics</h1>
+              <p className="mt-2 text-muted-foreground">
+                Track your sales performance and metrics
+              </p>
+            </div>
+            <TimeRangeFilter onFilterChange={handleFilterChange} />
+          </div>
         </header>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
