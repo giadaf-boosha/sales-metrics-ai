@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 const Login = () => {
   const navigate = useNavigate();
+  const redirectUrl = window.location.origin + '/';
 
   useEffect(() => {
     // Check if user is already logged in
@@ -25,7 +26,8 @@ const Login = () => {
           appearance={{ theme: ThemeSupa }}
           theme="light"
           providers={["google"]}
-          redirectTo={window.location.origin}
+          redirectTo={redirectUrl}
+          onlyThirdPartyProviders={false}
         />
       </div>
     </div>
