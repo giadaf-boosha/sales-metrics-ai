@@ -3,6 +3,7 @@ import { TrendChart } from "@/components/TrendChart";
 import { ChannelChart } from "@/components/ChannelChart";
 import { PipelineFunnel } from "@/components/PipelineFunnel";
 import { TimeRangeFilter } from "@/components/TimeRangeFilter";
+import { GoogleSheetsConfig } from "@/components/GoogleSheetsConfig";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSalesData } from "@/utils/googleSheets";
@@ -105,7 +106,9 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <GoogleSheetsConfig />
+
+        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Object.values(kpiData).map((kpi, index) => (
             <KpiCard
               key={kpi.title}
