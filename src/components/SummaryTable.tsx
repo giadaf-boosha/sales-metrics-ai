@@ -14,24 +14,6 @@ interface SummaryTableProps {
 }
 
 export function SummaryTable({ data }: SummaryTableProps) {
-  const parseDate = (dateString: string): Date | null => {
-    if (!dateString) return null;
-    const parts = dateString.split('/');
-    if (parts.length !== 3) return null;
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1; // I mesi in JavaScript vanno da 0 a 11
-    const year = parseInt(parts[2], 10);
-    const fullYear = year < 100 ? 2000 + year : year; // Gestione anni a due cifre
-    return new Date(fullYear, month, day);
-  };
-
-  const parseCurrency = (value: string): number => {
-    if (!value) return 0;
-    // Rimuove simboli e separatori di migliaia
-    const numberString = value.replace(/[€\s.]/g, '').replace(',', '.');
-    return parseFloat(numberString) || 0;
-  };
-
   const channelSummary = React.useMemo(() => {
     if (!data) return [];
 
@@ -53,9 +35,9 @@ export function SummaryTable({ data }: SummaryTableProps) {
         };
       }
 
-      const meetingDate = parseDate(curr['Meeting Effettuato (SQL)']);
-      const lostDate = parseDate(curr['Persi']);
-      const closingDate = parseDate(curr['Contratti Chiusi']);
+      const meetingDate = curr['Meeting Effettuato (SQL)'];
+      const lostDate = curr['Persi'];
+      const closingDate = curr['Contratti Chiusi'];
 
       // Total Opps Created
       if (meetingDate && curr['SQL'] === 'Si') {
@@ -70,12 +52,13 @@ export function SummaryTable({ data }: SummaryTableProps) {
       // Total Closed Won Opps & Revenue
       if (closingDate && curr['Stato'] === 'Cliente') {
         acc[channel].totalClosedWonOpps += 1;
-        acc[channel].totalClosedWonRevenue += parseCurrency(curr['Valore Tot €']);
+        acc[channel].totalClosedWonRevenue += curr['Valore Tot €'] || 0;
 
         // Calcolo del ciclo di vendita per le opportunità vinte
         if (meetingDate) {
           const salesCycleDays = Math.floor(
-            (closingDate.getTime() - meetingDate.getTime()) / (1000 * 60 * 60 * 24)
+            (new Date(closingDate).getTime() - new Date(meetingDate).getTime()) /
+              (1000 * 60 * 60 * 24)
           );
           acc[channel].totalSalesCycleDays += salesCycleDays;
         }
