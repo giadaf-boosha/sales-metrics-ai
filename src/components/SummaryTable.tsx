@@ -149,7 +149,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       </h3>
 
       <div className="relative overflow-auto">
-        <ScrollArea className="h-[calc(100vh-24rem)] w-full" orientation="both">
+        <ScrollArea className="h-[calc(100vh-24rem)] w-full">
           <div className="min-w-[1500px]">
             <Table>
               <TableHeaderComponent onSort={handleSort} />
