@@ -8,16 +8,12 @@ interface SalesDataPreviewProps {
 export const SalesDataPreview: React.FC<SalesDataPreviewProps> = ({ data }) => {
   if (!data || data.length === 0) return null;
 
-  return (
-    <div className="mb-6">
-      <h4 className="text-md font-semibold">Dati letti dal Google Sheet:</h4>
-      <pre className="bg-gray-100 p-4 rounded">
-        {JSON.stringify(
-          [data[0], data[1], data[data.length - 1]],
-          null,
-          2
-        )}
-      </pre>
-    </div>
-  );
+  console.log("Data from Google Sheet:", {
+    firstRow: data[0],
+    secondRow: data[1],
+    lastRow: data[data.length - 1],
+    totalRows: data.length
+  });
+
+  return null;
 };

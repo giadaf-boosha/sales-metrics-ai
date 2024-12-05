@@ -6,13 +6,16 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export function GoogleSheetsConfig() {
-  const [sheetId, setSheetId] = useState("");
+  const [sheetUrl, setSheetUrl] = useState("");
   const [sheetName, setSheetName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentConfig, setCurrentConfig] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [isConfigured, setIsConfigured] = useState(false);
 
   useEffect(() => {
     fetchCurrentConfig();
@@ -32,7 +35,7 @@ export function GoogleSheetsConfig() {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 means no rows returned
+      if (error && error.code !== 'PGRST116') {
         console.error("Error fetching config:", error);
         setError(error.message);
         return;
@@ -40,8 +43,7 @@ export function GoogleSheetsConfig() {
 
       if (data) {
         setCurrentConfig(data);
-        setSheetId(data.sheet_id || "");
-        setSheetName(data.sheet_name || "");
+        setIsConfigured(true);
       }
     } catch (err) {
       console.error("Error fetching current config:", err);
@@ -49,12 +51,40 @@ export function GoogleSheetsConfig() {
     }
   };
 
+  const extractSheetId = (url: string) => {
+    const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    return match ? match[1] : null;
+  };
+
+  const simulateProgress = () => {
+    setProgress(0);
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 200);
+    return interval;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
+    const progressInterval = simulateProgress();
+
     try {
+      const sheetId = extractSheetId(sheetUrl);
+      if (!sheetId) {
+        toast.error("Invalid Google Sheet URL");
+        setError("Please provide a valid Google Sheet URL");
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -78,6 +108,7 @@ export function GoogleSheetsConfig() {
       }
 
       toast.success("Google Sheet configured successfully!");
+      setIsConfigured(true);
       await fetchCurrentConfig();
     } catch (error) {
       console.error("Error configuring Google Sheet:", error);
@@ -85,22 +116,30 @@ export function GoogleSheetsConfig() {
       toast.error("Failed to configure Google Sheet");
     } finally {
       setIsSubmitting(false);
+      clearInterval(progressInterval);
+      setProgress(100);
     }
   };
 
-  return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-lg font-semibold">Configure Google Sheet</h3>
-      
-      {currentConfig && (
+  if (isConfigured && !error) {
+    return (
+      <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100">
         <Alert className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Current configuration: Sheet ID: {currentConfig.sheet_id}, Sheet Name: {currentConfig.sheet_name}
+            Google Sheet configured and ready to use
           </AlertDescription>
         </Alert>
-      )}
+      </div>
+    );
+  }
 
+  return (
+    <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100">
+      <h3 className="mb-4 text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+        Configure Google Sheet
+      </h3>
+      
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
@@ -110,34 +149,43 @@ export function GoogleSheetsConfig() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="sheetId">Google Sheet ID</Label>
+          <Label htmlFor="sheetUrl" className="text-sm font-medium text-gray-700">Google Sheet URL</Label>
           <Input
-            id="sheetId"
-            value={sheetId}
-            onChange={(e) => setSheetId(e.target.value)}
-            placeholder="Enter the Sheet ID from the URL"
+            id="sheetUrl"
+            value={sheetUrl}
+            onChange={(e) => setSheetUrl(e.target.value)}
+            placeholder="https://docs.google.com/spreadsheets/d/[Sheet-ID]/edit?usp=sharing"
+            className="border-gray-200 focus:ring-2 focus:ring-blue-500"
             required
           />
-          <p className="text-sm text-muted-foreground">
-            Find this in your Google Sheet URL: docs.google.com/spreadsheets/d/[Sheet-ID]/edit
-          </p>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="sheetName">Sheet Name</Label>
+          <Label htmlFor="sheetName" className="text-sm font-medium text-gray-700">Sheet Name</Label>
           <Input
             id="sheetName"
             value={sheetName}
             onChange={(e) => setSheetName(e.target.value)}
             placeholder="e.g. Sales"
+            className="border-gray-200 focus:ring-2 focus:ring-blue-500"
             required
           />
-          <p className="text-sm text-muted-foreground">
-            The name of the specific sheet tab containing your data
-          </p>
         </div>
 
-        <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting && (
+          <div className="space-y-2">
+            <Progress value={progress} className="w-full" />
+            <p className="text-sm text-gray-500 text-center">
+              Configuring your Google Sheet...
+            </p>
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg transition-all duration-200"
+        >
           {isSubmitting ? "Configuring..." : "Configure Sheet"}
         </Button>
       </form>

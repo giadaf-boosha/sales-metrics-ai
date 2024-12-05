@@ -21,7 +21,10 @@ const Index = () => {
   const { data: rawData, isLoading, error } = useQuery({
     queryKey: ["sales", timeRange],
     queryFn: () => fetchSalesData(timeRange),
-    retry: false
+    retry: false,
+    onSuccess: () => {
+      toast.success("Data loaded successfully!");
+    }
   });
 
   // Map the raw data to SalesData type
@@ -127,7 +130,7 @@ const Index = () => {
 
   const handleFilterChange = (value: string) => {
     setTimeRange(value);
-    toast.info(`Aggiornamento dashboard per il periodo: ${value}`);
+    toast.info(`Updating dashboard for period: ${value}`);
   };
 
   const handleMonthChange = (month: number) => {
@@ -136,14 +139,16 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
+      <div className="mx-auto max-w-[90rem]">
         <header className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-semibold">Sales Analytics</h1>
-              <p className="mt-2 text-muted-foreground">
-                Monitora le tue performance di vendita
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                Sales Analytics
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Monitor your sales performance metrics
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -153,7 +158,7 @@ const Index = () => {
               />
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-700 rounded-md hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-lg"
               >
                 Logout
               </button>
@@ -168,8 +173,8 @@ const Index = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               {error instanceof Error && error.message === 'No Google Sheet configured'
-                ? 'Configura il tuo Google Sheet sopra per visualizzare la dashboard.'
-                : 'Errore nel caricamento dei dati. Riprova più tardi.'}
+                ? 'Configure your Google Sheet above to view the dashboard.'
+                : 'Error loading data. Please try again later.'}
             </AlertDescription>
           </Alert>
         )}
@@ -177,12 +182,12 @@ const Index = () => {
         {!error && kpiData && (
           <>
             <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {Object.values(kpiData).map((kpi, index) => (
+              {Object.entries(kpiData).map(([key, kpi], index) => (
                 <KpiCard
-                  key={kpi.title}
+                  key={key}
                   title={kpi.title}
                   value={kpi.value}
-                  className={`[animation-delay:${index * 100}ms]`}
+                  className={`animate-fade-in [animation-delay:${index * 100}ms] bg-white/80 backdrop-blur-lg border border-gray-100`}
                 />
               ))}
             </div>
@@ -195,6 +200,6 @@ const Index = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Index;

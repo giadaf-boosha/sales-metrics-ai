@@ -25,7 +25,6 @@ type SortConfig = {
 export function SummaryTable({ data }: SummaryTableProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
-  // Mappatura dei dati
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
@@ -54,7 +53,6 @@ export function SummaryTable({ data }: SummaryTableProps) {
     }));
   }, [data]);
 
-  // Calcolo KPI e ordinamento
   const channelSummary = React.useMemo(() => {
     if (!mappedData.length) return [];
 
@@ -73,7 +71,34 @@ export function SummaryTable({ data }: SummaryTableProps) {
       });
     }
 
-    return summary;
+    // Calculate totals
+    const totals = summary.reduce((acc, curr) => ({
+      source: 'Total',
+      totalOppsCreated: acc.totalOppsCreated + curr.totalOppsCreated,
+      totalClosedLostOpps: acc.totalClosedLostOpps + curr.totalClosedLostOpps,
+      totalClosedWonOpps: acc.totalClosedWonOpps + curr.totalClosedWonOpps,
+      totalClosedWonRevenue: acc.totalClosedWonRevenue + curr.totalClosedWonRevenue,
+      acv: 0, // Will be calculated below
+      closedWonAvgSalesCycle: 0, // Will be calculated below
+      winRate: 0, // Will be calculated below
+      pipelineVelocity: acc.pipelineVelocity + curr.pipelineVelocity,
+      pipelineContribution: 100
+    }));
+
+    // Calculate averages for specific metrics
+    totals.acv = totals.totalClosedWonOpps > 0 
+      ? totals.totalClosedWonRevenue / totals.totalClosedWonOpps 
+      : 0;
+    
+    totals.winRate = totals.totalOppsCreated > 0 
+      ? (totals.totalClosedWonOpps / totals.totalOppsCreated) * 100 
+      : 0;
+
+    totals.closedWonAvgSalesCycle = summary.reduce((acc, curr) => 
+      acc + (curr.closedWonAvgSalesCycle * curr.totalClosedWonOpps), 0
+    ) / Math.max(totals.totalClosedWonOpps, 1);
+
+    return [...summary, totals];
   }, [mappedData, sortConfig]);
 
   const handleSort = (key: keyof ChannelKPI) => {
@@ -84,9 +109,9 @@ export function SummaryTable({ data }: SummaryTableProps) {
   };
 
   return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
-      <h3 className="mb-6 text-lg font-semibold">
-        Tabella Riepilogativa per Canale
+    <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100">
+      <h3 className="mb-6 text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+        Channel Performance Summary
       </h3>
 
       <SalesDataPreview data={mappedData} />
@@ -94,7 +119,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-gray-50/50">
               {[
                 { key: 'source', label: 'Source' },
                 { key: 'totalOppsCreated', label: 'Total Opps. created' },
@@ -111,7 +136,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
                   <Button
                     variant="ghost"
                     onClick={() => handleSort(key as keyof ChannelKPI)}
-                    className="flex items-center justify-end w-full"
+                    className="flex items-center justify-end w-full hover:text-blue-600"
                   >
                     {label}
                     <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -121,8 +146,11 @@ export function SummaryTable({ data }: SummaryTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {channelSummary.map((row) => (
-              <TableRow key={row.source}>
+            {channelSummary.map((row, index) => (
+              <TableRow 
+                key={row.source}
+                className={index === channelSummary.length - 1 ? 'font-semibold bg-gray-50/50' : 'hover:bg-gray-50/30'}
+              >
                 <TableCell>{row.source}</TableCell>
                 <TableCell className="text-right">
                   {row.totalOppsCreated}
