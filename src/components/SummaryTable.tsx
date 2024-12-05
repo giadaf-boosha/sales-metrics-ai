@@ -1,3 +1,4 @@
+// Importazioni necessarie
 import React from 'react';
 import {
   Table,
@@ -8,17 +9,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
+// Definizione dell'interfaccia per i dati di vendita
 interface SalesData {
   [key: string]: any;
   ID: string;
   Sales: string;
   Canale: string;
-  'Meeting Fissato': string | Date;
-  'Meeting Effettuato (SQL)': string | Date;
-  'Offerte Inviate': string | Date;
-  'Analisi Firmate': string | Date;
-  'Contratti Chiusi': string | Date;
-  Persi: string | Date;
+  'Meeting Fissato': string | Date | null;
+  'Meeting Effettuato (SQL)': string | Date | null;
+  'Offerte Inviate': string | Date | null;
+  'Analisi Firmate': string | Date | null;
+  'Contratti Chiusi': string | Date | null;
+  Persi: string | Date | null;
   SQL: string;
   Stato: string;
   Servizio: string;
@@ -31,6 +33,7 @@ interface SalesData {
   'Come mai ha accettato?': string;
   Obiezioni: string;
   Note: string;
+  // Aggiungi qui eventuali altre colonne fino alla V
 }
 
 interface SummaryTableProps {
@@ -38,6 +41,7 @@ interface SummaryTableProps {
 }
 
 export function SummaryTable({ data }: SummaryTableProps) {
+  // Funzione per il parsing delle date
   const parseDate = (dateString: string): Date | null => {
     if (!dateString) return null;
     const parts = dateString.split('/');
@@ -49,6 +53,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
     return new Date(fullYear, month, day);
   };
 
+  // Funzione per il parsing dei valori monetari
   const parseCurrency = (value: string): number => {
     if (!value) return 0;
     // Rimuove simboli e separatori di migliaia
@@ -56,37 +61,37 @@ export function SummaryTable({ data }: SummaryTableProps) {
     return parseFloat(numberString) || 0;
   };
 
-  // Definisci manualmente le intestazioni (nomi delle colonne) per le colonne dalla A alla V
+  // Definizione delle intestazioni per le colonne dalla A alla V
   const headers = [
-    'ID', // Index 0
-    'Sales', // Index 1
-    'Canale', // Index 2
-    'Meeting Fissato', // Index 3
-    'Meeting Effettuato (SQL)', // Index 4
-    'Offerte Inviate', // Index 5
-    'Analisi Firmate', // Index 6
-    'Contratti Chiusi', // Index 7
-    'Persi', // Index 8
-    'SQL', // Index 9
-    'Stato', // Index 10
-    'Servizio', // Index 11
-    'Valore Tot €', // Index 12
-    'Azienda', // Index 13
-    'Nome Persona', // Index 14
-    'Ruolo', // Index 15
-    'Dimensioni', // Index 16
-    'Settore', // Index 17
-    'Come mai ha accettato?', // Index 18
-    'Obiezioni', // Index 19
-    'Note', // Index 20
-    // Aggiungi altre colonne se necessario, assicurati che l'indice corrisponda
+    'ID', // Index 0 (Colonna A)
+    'Sales', // Index 1 (Colonna B)
+    'Canale', // Index 2 (Colonna C)
+    'Meeting Fissato', // Index 3 (Colonna D)
+    'Meeting Effettuato (SQL)', // Index 4 (Colonna E)
+    'Offerte Inviate', // Index 5 (Colonna F)
+    'Analisi Firmate', // Index 6 (Colonna G)
+    'Contratti Chiusi', // Index 7 (Colonna H)
+    'Persi', // Index 8 (Colonna I)
+    'SQL', // Index 9 (Colonna J)
+    'Stato', // Index 10 (Colonna K)
+    'Servizio', // Index 11 (Colonna L)
+    'Valore Tot €', // Index 12 (Colonna M)
+    'Azienda', // Index 13 (Colonna N)
+    'Nome Persona', // Index 14 (Colonna O)
+    'Ruolo', // Index 15 (Colonna P)
+    'Dimensioni', // Index 16 (Colonna Q)
+    'Settore', // Index 17 (Colonna R)
+    'Come mai ha accettato?', // Index 18 (Colonna S)
+    'Obiezioni', // Index 19 (Colonna T)
+    'Note', // Index 20 (Colonna U)
+    // Aggiungi altre colonne se presenti fino alla V
   ];
 
-  // Mappare i dati utilizzando le intestazioni
+  // Mappatura dei dati utilizzando le intestazioni
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    const mapped = data.map((row, rowIndex) => {
+    const mapped = data.map((row) => {
       const rowData: { [key: string]: any } = {};
       headers.forEach((header, index) => {
         rowData[header] = row[index] !== undefined ? row[index] : '';
@@ -94,7 +99,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       return rowData as SalesData;
     });
 
-    // Converti date e valori monetari nei tipi appropriati
+    // Conversione dei tipi di dati
     const convertedData = mapped.map((row) => {
       return {
         ...row,
@@ -111,6 +116,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
     return convertedData;
   }, [data]);
 
+  // Calcolo dei KPI
   const channelSummary = React.useMemo(() => {
     if (!mappedData || mappedData.length === 0) return [];
 
@@ -137,7 +143,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       const closingDate = curr['Contratti Chiusi'];
 
       // Total Opps Created
-      if (meetingDate && curr['SQL'] === 'Si') {
+      if (meetingDate && curr['SQL'] === 'Sì') {
         acc[channel].totalOppsCreated += 1;
       }
 
@@ -203,6 +209,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
     });
   }, [mappedData]);
 
+  // Rendering del componente
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm">
       <h3 className="mb-6 text-lg font-semibold">
