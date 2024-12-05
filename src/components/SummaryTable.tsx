@@ -11,26 +11,26 @@ import type { SalesData } from '@/utils/googleSheets';
 
 interface SalesData {
   [key: string]: any;
-  ID: string;
-  Sales: string;
-  Canale: string;
+  'ID': string;
+  'Sales': string;
+  'Canale': string;
   'Meeting Fissato': string | Date;
   'Meeting Effettuato (SQL)': string | Date;
   'Offerte Inviate': string | Date;
   'Contratti Chiusi': string | Date;
-  Persi: string | Date;
-  SQL: string;
-  Stato: string;
-  Servizio: string;
+  'Persi': string | Date;
+  'SQL': string;
+  'Stato': string;
+  'Servizio': string;
   'Valore Tot €': string | number;
-  Azienda: string;
+  'Azienda': string;
   'Nome Persona': string;
-  Ruolo: string;
-  Dimensioni: string;
-  Settore: string;
+  'Ruolo': string;
+  'Dimensioni': string;
+  'Settore': string;
   'Come mai ha accettato?': string;
-  Obiezioni: string;
-  Note: string;
+  'Obiezioni': string;
+  'Note': string;
 }
 
 interface SummaryTableProps {
