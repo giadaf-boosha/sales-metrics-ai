@@ -50,48 +50,6 @@ export const TableRowComponent: React.FC<TableRowProps> = ({ row, isTotal }) => 
       <TableCell className="text-right text-xs whitespace-nowrap">
         {row.pipelineContribution.toFixed(2)}%
       </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.meetingScheduled || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.meetingCompleted || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.proposalSent || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.contractsClosed || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.status || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.service || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.company || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.personName || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.role || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.size || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.sector || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.acceptanceReason || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.objections || '-'}
-      </TableCell>
-      <TableCell className="text-right text-xs whitespace-nowrap">
-        {row.notes || '-'}
-      </TableCell>
     </UITableRow>
   );
 };

@@ -19,21 +19,7 @@ export const TableHeaderComponent: React.FC<TableHeaderProps> = ({ onSort }) => 
     { key: 'closedWonAvgSalesCycle', label: 'Closed Won Avg. Sales Cycle' },
     { key: 'winRate', label: 'Win-Rate' },
     { key: 'pipelineVelocity', label: 'Pipeline Velocity' },
-    { key: 'pipelineContribution', label: '% of pipeline contribution' },
-    { key: 'meetingScheduled', label: 'Meeting Scheduled' },
-    { key: 'meetingCompleted', label: 'Meeting Completed' },
-    { key: 'proposalSent', label: 'Proposal Sent' },
-    { key: 'contractsClosed', label: 'Contracts Closed' },
-    { key: 'status', label: 'Status' },
-    { key: 'service', label: 'Service' },
-    { key: 'company', label: 'Company' },
-    { key: 'personName', label: 'Person Name' },
-    { key: 'role', label: 'Role' },
-    { key: 'size', label: 'Size' },
-    { key: 'sector', label: 'Sector' },
-    { key: 'acceptanceReason', label: 'Acceptance Reason' },
-    { key: 'objections', label: 'Objections' },
-    { key: 'notes', label: 'Notes' }
+    { key: 'pipelineContribution', label: '% of pipeline contribution' }
   ];
 
   return (
