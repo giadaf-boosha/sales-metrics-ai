@@ -148,8 +148,8 @@ export function SummaryTable({ data }: SummaryTableProps) {
         Channel Performance Summary
       </h3>
 
-      <ScrollArea className="h-[calc(100vh-24rem)]">
-        <div className="min-w-[1200px]">
+      <ScrollArea className="h-[calc(100vh-24rem)] rounded-md">
+        <div className="min-w-full">
           <Table>
             <TableHeaderComponent onSort={handleSort} />
             <TableBody>
