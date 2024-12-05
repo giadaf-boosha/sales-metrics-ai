@@ -15,6 +15,8 @@ export interface SalesData {
   role: string;
   sector: string;
   closingTime?: number;
+  sql: string;
+  lostDate: string;
 }
 
 export async function fetchSalesData(range: string): Promise<SalesData[]> {
@@ -110,6 +112,8 @@ function transformSheetData(values: any[][]): SalesData[] {
     personName: row[12] || '',
     role: row[13] || '',
     sector: row[14] || '',
-    closingTime: parseFloat(row[15] || '0')
+    closingTime: parseFloat(row[15] || '0'),
+    sql: row[16] || '',
+    lostDate: row[17] || ''
   }));
 }
