@@ -10,10 +10,17 @@ import { useState, useEffect } from "react";
 interface TimeRangeFilterProps {
   onFilterChange: (value: string) => void;
   onMonthChange: (month: number) => void;
+  onDateFilterChange: (type: string, month: number) => void;
 }
 
-export function TimeRangeFilter({ onFilterChange, onMonthChange }: TimeRangeFilterProps) {
+export function TimeRangeFilter({ 
+  onFilterChange, 
+  onMonthChange,
+  onDateFilterChange 
+}: TimeRangeFilterProps) {
   const [currentMonth] = useState(() => new Date().getMonth() + 1); // 1-12
+  const [meetingMonth, setMeetingMonth] = useState(currentMonth);
+  const [contractMonth, setContractMonth] = useState(currentMonth);
 
   const months = [
     { value: 1, label: "Gennaio" },
@@ -34,6 +41,18 @@ export function TimeRangeFilter({ onFilterChange, onMonthChange }: TimeRangeFilt
     onMonthChange(currentMonth);
   }, [currentMonth, onMonthChange]);
 
+  const handleMeetingMonthChange = (value: string) => {
+    const month = parseInt(value);
+    setMeetingMonth(month);
+    onDateFilterChange('meeting', month);
+  };
+
+  const handleContractMonthChange = (value: string) => {
+    const month = parseInt(value);
+    setContractMonth(month);
+    onDateFilterChange('contract', month);
+  };
+
   return (
     <div className="flex gap-4">
       <div className="w-[200px]">
@@ -51,16 +70,33 @@ export function TimeRangeFilter({ onFilterChange, onMonthChange }: TimeRangeFilt
       </div>
       <div className="w-[200px]">
         <Select 
-          defaultValue={currentMonth.toString()} 
-          onValueChange={(value) => onMonthChange(parseInt(value))}
+          defaultValue={meetingMonth.toString()} 
+          onValueChange={handleMeetingMonthChange}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select month" />
+            <SelectValue placeholder="Meeting Month" />
           </SelectTrigger>
           <SelectContent>
             {months.map((month) => (
               <SelectItem key={month.value} value={month.value.toString()}>
-                {month.label}
+                {month.label} (Meeting)
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="w-[200px]">
+        <Select 
+          defaultValue={contractMonth.toString()} 
+          onValueChange={handleContractMonthChange}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Contract Month" />
+          </SelectTrigger>
+          <SelectContent>
+            {months.map((month) => (
+              <SelectItem key={month.value} value={month.value.toString()}>
+                {month.label} (Contract)
               </SelectItem>
             ))}
           </SelectContent>

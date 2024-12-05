@@ -17,6 +17,8 @@ import { Progress } from "@/components/ui/progress";
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [meetingMonth, setMeetingMonth] = useState<number | undefined>(undefined);
+  const [contractMonth, setContractMonth] = useState<number | undefined>(undefined);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
@@ -141,7 +143,14 @@ const Index = () => {
 
   const handleMonthChange = (month: number) => {
     setCurrentMonth(month);
-    console.log("Month changed to:", month);
+  };
+
+  const handleDateFilterChange = (type: string, month: number) => {
+    if (type === 'meeting') {
+      setMeetingMonth(month);
+    } else if (type === 'contract') {
+      setContractMonth(month);
+    }
   };
 
   return (
@@ -161,6 +170,7 @@ const Index = () => {
               <TimeRangeFilter 
                 onFilterChange={handleFilterChange}
                 onMonthChange={handleMonthChange}
+                onDateFilterChange={handleDateFilterChange}
               />
               <button
                 onClick={handleLogout}
@@ -206,7 +216,11 @@ const Index = () => {
             </div>
 
             <div className="mt-8">
-              <SummaryTable data={rawData} />
+              <SummaryTable 
+                data={rawData} 
+                meetingMonth={meetingMonth}
+                contractMonth={contractMonth}
+              />
             </div>
           </>
         )}

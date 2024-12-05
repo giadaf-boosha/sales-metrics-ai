@@ -11,6 +11,8 @@ import { TableRowComponent } from './TableRow';
 
 interface SummaryTableProps {
   data?: any[];
+  meetingMonth?: number;
+  contractMonth?: number;
 }
 
 type SortConfig = {
@@ -18,35 +20,52 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 } | null;
 
-export function SummaryTable({ data }: SummaryTableProps) {
+const getMonthFromDate = (dateStr: string): number => {
+  if (!dateStr) return 0;
+  const [day, month] = dateStr.split('/').map(Number);
+  return month;
+};
+
+export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTableProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
-    return data.map((row): SalesData => ({
-      ID: row[0] || '',
-      Sales: row[1] || '',
-      Canale: row[2] || '',
-      'Meeting Fissato': row[3] || '',
-      'Meeting Effettuato (SQL)': row[4] || '',
-      'Offerte Inviate': row[5] || '',
-      'Analisi Firmate': row[6] || '',
-      'Contratti Chiusi': row[7] || '',
-      Persi: row[8] || '',
-      SQL: row[9] || '',
-      Stato: row[10] || '',
-      Servizio: row[11] || '',
-      'Valore Tot €': row[12] || '',
-      Azienda: row[13] || '',
-      'Nome Persona': row[14] || '',
-      Ruolo: row[15] || '',
-      Dimensioni: row[16] || '',
-      Settore: row[17] || '',
-      'Come mai ha accettato?': row[18] || '',
-      Obiezioni: row[19] || '',
-      Note: row[20] || ''
-    }));
-  }, [data]);
+    
+    return data
+      .map((row): SalesData => ({
+        ID: row[0] || '',
+        Sales: row[1] || '',
+        Canale: row[2] || '',
+        'Meeting Fissato': row[3] || '',
+        'Meeting Effettuato (SQL)': row[4] || '',
+        'Offerte Inviate': row[5] || '',
+        'Analisi Firmate': row[6] || '',
+        'Contratti Chiusi': row[7] || '',
+        Persi: row[8] || '',
+        SQL: row[9] || '',
+        Stato: row[10] || '',
+        Servizio: row[11] || '',
+        'Valore Tot €': row[12] || '',
+        Azienda: row[13] || '',
+        'Nome Persona': row[14] || '',
+        Ruolo: row[15] || '',
+        Dimensioni: row[16] || '',
+        Settore: row[17] || '',
+        'Come mai ha accettato?': row[18] || '',
+        Obiezioni: row[19] || '',
+        Note: row[20] || ''
+      }))
+      .filter(row => {
+        const meetingDateMonth = getMonthFromDate(row['Meeting Fissato']);
+        const contractDateMonth = getMonthFromDate(row['Contratti Chiusi']);
+        
+        const meetingMatch = !meetingMonth || meetingDateMonth === meetingMonth;
+        const contractMatch = !contractMonth || contractDateMonth === contractMonth;
+        
+        return meetingMatch && contractMatch;
+      });
+  }, [data, meetingMonth, contractMonth]);
 
   const channelSummary = React.useMemo(() => {
     if (!mappedData.length) return [];
