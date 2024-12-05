@@ -59,11 +59,9 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
       throw new Error('Invalid sheet configuration');
     }
 
-    // For now, use the API key directly since we're having issues with the vault
-    const API_KEY = 'AIzaSyBu09MH4xCpr6hCmGK6Y28AVKvAY-K8haA';
-
+    // Modifichiamo il range per includere tutte le colonne fino a V
     const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${sheetConfig.sheet_id}/values/${sheetConfig.sheet_name}!A2:N?key=${API_KEY}`
+      `https://sheets.googleapis.com/v4/spreadsheets/${sheetConfig.sheet_id}/values/${sheetConfig.sheet_name}!A2:V?key=AIzaSyBu09MH4xCpr6hCmGK6Y28AVKvAY-K8haA`
     );
     
     if (!response.ok) {
@@ -78,7 +76,7 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
     }
 
     const data = await response.json();
-    console.log("Received data from Google Sheets:", data);
+    console.log("Received raw data from Google Sheets:", data);
     
     if (!data.values || !Array.isArray(data.values)) {
       console.error('Invalid data format received:', data);
@@ -86,34 +84,10 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
       throw new Error('Invalid data format');
     }
 
-    const transformedData = transformSheetData(data.values);
-    console.log("Transformed data:", transformedData);
-
-    return transformedData;
+    // Ora ritorniamo i dati grezzi senza trasformazione
+    return data.values;
   } catch (error) {
     console.error('Error fetching sales data:', error);
     throw error;
   }
-}
-
-function transformSheetData(values: any[][]): SalesData[] {
-  if (!values) return [];
-  
-  return values.map(row => ({
-    channel: row[1] || '',  // This maps to the "Canale" column
-    meetingScheduled: row[2] || '',
-    meetingCompleted: row[3] || '',
-    proposalSent: row[4] || '',
-    contractsClosed: row[5] || '',
-    status: row[8] || '',
-    service: row[9] || '',
-    value: parseFloat(row[10]?.replace('€', '').replace(',', '')) || 0,
-    company: row[11] || '',
-    personName: row[12] || '',
-    role: row[13] || '',
-    sector: row[14] || '',
-    closingTime: parseFloat(row[15] || '0'),
-    sql: row[16] || '',
-    lostDate: row[17] || ''
-  }));
 }
