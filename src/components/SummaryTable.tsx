@@ -15,7 +15,6 @@ import { Button } from './ui/button';
 
 interface SummaryTableProps {
   data?: any[];
-  selectedMonth: number;
 }
 
 type SortConfig = {
@@ -23,7 +22,7 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 } | null;
 
-export function SummaryTable({ data, selectedMonth }: SummaryTableProps) {
+export function SummaryTable({ data }: SummaryTableProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   // Mappatura dei dati
@@ -59,7 +58,7 @@ export function SummaryTable({ data, selectedMonth }: SummaryTableProps) {
   const channelSummary = React.useMemo(() => {
     if (!mappedData.length) return [];
 
-    let summary = calculateChannelKPIs(mappedData, selectedMonth);
+    let summary = calculateChannelKPIs(mappedData);
 
     if (sortConfig) {
       summary.sort((a, b) => {
@@ -75,7 +74,7 @@ export function SummaryTable({ data, selectedMonth }: SummaryTableProps) {
     }
 
     return summary;
-  }, [mappedData, selectedMonth, sortConfig]);
+  }, [mappedData, sortConfig]);
 
   const handleSort = (key: keyof ChannelKPI) => {
     setSortConfig(current => ({
