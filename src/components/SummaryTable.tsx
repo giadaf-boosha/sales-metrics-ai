@@ -49,7 +49,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
           winRate: 0,
           pipelineVelocity: 0,
           pipelineContribution: 0,
-          totalSalesCycleDays: 1,
+          totalSalesCycleDays: 0,
         };
       }
 
@@ -129,6 +129,21 @@ export function SummaryTable({ data }: SummaryTableProps) {
       <h3 className="mb-6 text-lg font-semibold">
         Tabella Riepilogativa per Canale
       </h3>
+
+      {/* Visualizzazione delle prime due righe e dell'ultima riga dei dati */}
+      {data && data.length > 0 && (
+        <div className="mb-6">
+          <h4 className="text-md font-semibold">Dati letti dal Google Sheet:</h4>
+          <pre className="bg-gray-100 p-4 rounded">
+            {JSON.stringify(
+              [data[0], data[1], data[data.length - 1]],
+              null,
+              2
+            )}
+          </pre>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
