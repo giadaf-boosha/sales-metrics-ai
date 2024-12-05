@@ -16,6 +16,7 @@ interface SalesData {
   'Meeting Fissato': string | Date;
   'Meeting Effettuato (SQL)': string | Date;
   'Offerte Inviate': string | Date;
+  'Analisi Firmate': string | Date;
   'Contratti Chiusi': string | Date;
   Persi: string | Date;
   SQL: string;
@@ -23,43 +24,84 @@ interface SalesData {
   Servizio: string;
   'Valore Tot €': string | number;
   Azienda: string;
-  'Nome Persona': string;
-  Ruolo: string;
-  Dimensioni: string;
-  Settore: string;
-  'Come mai ha accettato?': string;
-  Obiezioni: string;
-  Note: string;
+  // Aggiungi qui altri campi se leggi più colonne
 }
 
 interface SummaryTableProps {
-  data?: SalesData[]; // Ora i dati hanno le proprietà corrette
+  data?: any[]; // Dati grezzi dal Google Sheet
 }
 
 export function SummaryTable({ data }: SummaryTableProps) {
-  const parseDate = (date: string | Date): Date | null => {
-    if (!date) return null;
-    if (date instanceof Date) return date;
-    const parts = date.split('/');
+  const parseDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    const parts = dateString.split('/');
     if (parts.length !== 3) return null;
     const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
+    const month = parseInt(parts[1], 10) - 1; // I mesi in JavaScript vanno da 0 a 11
     const year = parseInt(parts[2], 10);
     const fullYear = year < 100 ? 2000 + year : year; // Gestione anni a due cifre
     return new Date(fullYear, month, day);
   };
 
-  const parseCurrency = (value: string | number): number => {
+  const parseCurrency = (value: string): number => {
     if (!value) return 0;
-    if (typeof value === 'number') return value;
+    // Rimuove simboli e separatori di migliaia
     const numberString = value.replace(/[€\s.]/g, '').replace(',', '.');
     return parseFloat(numberString) || 0;
   };
 
-  const channelSummary = React.useMemo(() => {
+  // Definisci manualmente le intestazioni (nomi delle colonne)
+  const headers = [
+    'ID', // Index 0
+    'Sales', // Index 1
+    'Canale', // Index 2
+    'Meeting Fissato', // Index 3
+    'Meeting Effettuato (SQL)', // Index 4
+    'Offerte Inviate', // Index 5
+    'Analisi Firmate', // Index 6
+    'Contratti Chiusi', // Index 7
+    'Persi', // Index 8
+    'SQL', // Index 9
+    'Stato', // Index 10
+    'Servizio', // Index 11
+    'Valore Tot €', // Index 12
+    'Azienda', // Index 13
+    // Aggiungi qui altri campi se leggi più colonne
+  ];
+
+  // Mappare i dati utilizzando le intestazioni
+  const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    const summary = data.reduce((acc, curr) => {
+    const mapped = data.map((row) => {
+      const rowData: { [key: string]: any } = {};
+      headers.forEach((header, index) => {
+        rowData[header] = row[index] || '';
+      });
+      return rowData as SalesData;
+    });
+
+    // Converti date e valori monetari nei tipi appropriati
+    const convertedData = mapped.map((row) => {
+      return {
+        ...row,
+        'Meeting Fissato': parseDate(row['Meeting Fissato']),
+        'Meeting Effettuato (SQL)': parseDate(row['Meeting Effettuato (SQL)']),
+        'Offerte Inviate': parseDate(row['Offerte Inviate']),
+        'Analisi Firmate': parseDate(row['Analisi Firmate']),
+        'Contratti Chiusi': parseDate(row['Contratti Chiusi']),
+        Persi: parseDate(row['Persi']),
+        'Valore Tot €': parseCurrency(row['Valore Tot €']),
+      };
+    });
+
+    return convertedData;
+  }, [data]);
+
+  const channelSummary = React.useMemo(() => {
+    if (!mappedData || mappedData.length === 0) return [];
+
+    const summary = mappedData.reduce((acc, curr) => {
       const channel = curr['Canale'] || 'Other';
       if (!acc[channel]) {
         acc[channel] = {
@@ -77,12 +119,12 @@ export function SummaryTable({ data }: SummaryTableProps) {
         };
       }
 
-      const meetingDate = parseDate(curr['Meeting Effettuato (SQL)']);
-      const lostDate = parseDate(curr['Persi']);
-      const closingDate = parseDate(curr['Contratti Chiusi']);
+      const meetingDate = curr['Meeting Effettuato (SQL)'];
+      const lostDate = curr['Persi'];
+      const closingDate = curr['Contratti Chiusi'];
 
       // Total Opps Created
-      if (meetingDate && curr['SQL'] === 'Sì') {
+      if (meetingDate && curr['SQL'] === 'Si') {
         acc[channel].totalOppsCreated += 1;
       }
 
@@ -94,7 +136,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       // Total Closed Won Opps & Revenue
       if (closingDate && curr['Stato'] === 'Cliente') {
         acc[channel].totalClosedWonOpps += 1;
-        acc[channel].totalClosedWonRevenue += parseCurrency(curr['Valore Tot €']);
+        acc[channel].totalClosedWonRevenue += curr['Valore Tot €'] || 0;
 
         // Calcolo del ciclo di vendita per le opportunità vinte
         if (meetingDate) {
@@ -146,7 +188,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
             : 0,
       };
     });
-  }, [data]);
+  }, [mappedData]);
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm">
@@ -155,14 +197,14 @@ export function SummaryTable({ data }: SummaryTableProps) {
       </h3>
 
       {/* Visualizzazione delle prime due righe e dell'ultima riga dei dati */}
-      {data && data.length > 0 && (
+      {mappedData && mappedData.length > 0 && (
         <div className="mb-6">
           <h4 className="text-md font-semibold">
             Dati letti dal Google Sheet:
           </h4>
           <pre className="bg-gray-100 p-4 rounded">
             {JSON.stringify(
-              [data[0], data[1], data[data.length - 1]],
+              [mappedData[0], mappedData[1], mappedData[mappedData.length - 1]],
               null,
               2
             )}
