@@ -36,7 +36,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
     if (!data) return [];
 
     const summary = data.reduce((acc, curr) => {
-      const channel = curr.channel || 'Other';
+      const channel = curr['Canale'] || 'Other';
       if (!acc[channel]) {
         acc[channel] = {
           source: channel,
@@ -49,28 +49,28 @@ export function SummaryTable({ data }: SummaryTableProps) {
           winRate: 0,
           pipelineVelocity: 0,
           pipelineContribution: 0,
-          totalSalesCycleDays: 0,
+          totalSalesCycleDays: 1,
         };
       }
 
-      const meetingDate = parseDate(curr.meetingCompleted);
-      const lostDate = parseDate(curr.lostDate);
-      const closingDate = parseDate(curr.contractsClosed);
+      const meetingDate = parseDate(curr['Meeting Effettuato (SQL)']);
+      const lostDate = parseDate(curr['Persi']);
+      const closingDate = parseDate(curr['Contratti Chiusi']);
 
       // Total Opps Created
-      if (meetingDate && curr.sql === 'Si') {
+      if (meetingDate && curr['SQL'] === 'Si') {
         acc[channel].totalOppsCreated += 1;
       }
 
       // Total Closed Lost Opps
-      if (lostDate && curr.status === 'Perso') {
+      if (lostDate && curr['Stato'] === 'Perso') {
         acc[channel].totalClosedLostOpps += 1;
       }
 
       // Total Closed Won Opps & Revenue
-      if (closingDate && curr.status === 'Cliente') {
+      if (closingDate && curr['Stato'] === 'Cliente') {
         acc[channel].totalClosedWonOpps += 1;
-        acc[channel].totalClosedWonRevenue += parseCurrency(curr.value);
+        acc[channel].totalClosedWonRevenue += parseCurrency(curr['Valore Tot €']);
 
         // Calcolo del ciclo di vendita per le opportunità vinte
         if (meetingDate) {
@@ -84,7 +84,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       return acc;
     }, {} as Record<string, any>);
 
-    // Calcolo dei metriche derivate per ogni canale
+    // Calcolo delle metriche derivate per ogni canale
     const totalPipelineValue = Object.values(summary).reduce(
       (total: number, channel: any) => total + channel.totalClosedWonRevenue,
       0
