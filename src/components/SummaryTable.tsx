@@ -1,4 +1,3 @@
-// Importazioni necessarie
 import React from 'react';
 import {
   Table,
@@ -11,16 +10,15 @@ import {
 
 // Definizione dell'interfaccia per i dati di vendita
 interface SalesData {
-  [key: string]: any;
   ID: string;
   Sales: string;
   Canale: string;
-  'Meeting Fissato': string | Date | null;
+  'Meeting Fissato': string;
   'Meeting Effettuato (SQL)': string | Date | null;
-  'Offerte Inviate': string | Date | null;
-  'Analisi Firmate': string | Date | null;
-  'Contratti Chiusi': string | Date | null;
-  Persi: string | Date | null;
+  'Offerte Inviate': string;
+  'Analisi Firmate': string;
+  'Contratti Chiusi': string;
+  Persi: string;
   SQL: string;
   Stato: string;
   Servizio: string;
@@ -33,7 +31,6 @@ interface SalesData {
   'Come mai ha accettato?': string;
   Obiezioni: string;
   Note: string;
-  // Aggiungi qui eventuali altre colonne fino alla V
 }
 
 interface SummaryTableProps {
@@ -61,62 +58,46 @@ export function SummaryTable({ data }: SummaryTableProps) {
     return parseFloat(numberString) || 0;
   };
 
-  // Definizione delle intestazioni per le colonne dalla A alla V
-  const headers = [
-    'ID', // Index 0 (Colonna A)
-    'Sales', // Index 1 (Colonna B)
-    'Canale', // Index 2 (Colonna C)
-    'Meeting Fissato', // Index 3 (Colonna D)
-    'Meeting Effettuato (SQL)', // Index 4 (Colonna E)
-    'Offerte Inviate', // Index 5 (Colonna F)
-    'Analisi Firmate', // Index 6 (Colonna G)
-    'Contratti Chiusi', // Index 7 (Colonna H)
-    'Persi', // Index 8 (Colonna I)
-    'SQL', // Index 9 (Colonna J)
-    'Stato', // Index 10 (Colonna K)
-    'Servizio', // Index 11 (Colonna L)
-    'Valore Tot €', // Index 12 (Colonna M)
-    'Azienda', // Index 13 (Colonna N)
-    'Nome Persona', // Index 14 (Colonna O)
-    'Ruolo', // Index 15 (Colonna P)
-    'Dimensioni', // Index 16 (Colonna Q)
-    'Settore', // Index 17 (Colonna R)
-    'Come mai ha accettato?', // Index 18 (Colonna S)
-    'Obiezioni', // Index 19 (Colonna T)
-    'Note', // Index 20 (Colonna U)
-    // Aggiungi altre colonne se presenti fino alla V
-  ];
-
   // Mappatura dei dati utilizzando le intestazioni
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    const mapped = data.map((row) => {
-      const rowData: { [key: string]: any } = {};
-      headers.forEach((header, index) => {
-        rowData[header] = row[index] !== undefined ? row[index] : '';
-      });
-      return rowData as SalesData;
-    });
+    return data.map((row) => {
+      // Mapping diretto delle colonne secondo l'ordine specificato
+      const rowData: SalesData = {
+        ID: row[0] || '',
+        Sales: row[1] || '',
+        Canale: row[2] || '',
+        'Meeting Fissato': row[3] || '',
+        'Meeting Effettuato (SQL)': row[4] || '',
+        'Offerte Inviate': row[5] || '',
+        'Analisi Firmate': row[6] || '',
+        'Contratti Chiusi': row[7] || '',
+        Persi: row[8] || '',
+        SQL: row[9] || '',
+        Stato: row[10] || '',
+        Servizio: row[11] || '',
+        'Valore Tot €': row[12] || '',
+        Azienda: row[13] || '',
+        'Nome Persona': row[14] || '',
+        Ruolo: row[15] || '',
+        Dimensioni: row[16] || '',
+        Settore: row[17] || '',
+        'Come mai ha accettato?': row[18] || '',
+        Obiezioni: row[19] || '',
+        Note: row[20] || ''
+      };
 
-    // Conversione dei tipi di dati
-    const convertedData = mapped.map((row) => {
+      // Conversione dei tipi di dati specifici
       return {
-        ...row,
-        'Meeting Fissato': parseDate(row['Meeting Fissato']),
-        'Meeting Effettuato (SQL)': parseDate(row['Meeting Effettuato (SQL)']),
-        'Offerte Inviate': parseDate(row['Offerte Inviate']),
-        'Analisi Firmate': parseDate(row['Analisi Firmate']),
-        'Contratti Chiusi': parseDate(row['Contratti Chiusi']),
-        Persi: parseDate(row['Persi']),
-        'Valore Tot €': parseCurrency(row['Valore Tot €']),
+        ...rowData,
+        'Meeting Effettuato (SQL)': parseDate(rowData['Meeting Effettuato (SQL)'] as string),
+        'Valore Tot €': parseCurrency(rowData['Valore Tot €'] as string)
       };
     });
-
-    return convertedData;
   }, [data]);
 
-  // Calcolo dei KPI
+  // Calcolo dei KPI basato sui dati mappati
   const channelSummary = React.useMemo(() => {
     if (!mappedData || mappedData.length === 0) return [];
 
@@ -160,7 +141,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
         // Calcolo del ciclo di vendita per le opportunità vinte
         if (meetingDate) {
           const salesCycleDays = Math.floor(
-            (closingDate.getTime() - meetingDate.getTime()) / (1000 * 60 * 60 * 24)
+            (new Date(closingDate).getTime() - meetingDate.getTime()) / (1000 * 60 * 60 * 24)
           );
           acc[channel].totalSalesCycleDays += salesCycleDays;
         }
@@ -176,10 +157,8 @@ export function SummaryTable({ data }: SummaryTableProps) {
     );
 
     return Object.values(summary).map((channel) => {
-      const totalOpps =
-        channel.totalClosedWonOpps + channel.totalClosedLostOpps;
-      const winRate =
-        totalOpps > 0 ? channel.totalClosedWonOpps / totalOpps : 0;
+      const totalOpps = channel.totalClosedWonOpps + channel.totalClosedLostOpps;
+      const winRate = totalOpps > 0 ? channel.totalClosedWonOpps / totalOpps : 0;
       const avgSalesCycle =
         channel.totalClosedWonOpps > 0
           ? channel.totalSalesCycleDays / channel.totalClosedWonOpps
@@ -189,7 +168,6 @@ export function SummaryTable({ data }: SummaryTableProps) {
           ? channel.totalClosedWonRevenue / channel.totalClosedWonOpps
           : 0;
 
-      // Calcolo della Pipeline Velocity
       const pipelineVelocity =
         avgSalesCycle > 0
           ? (channel.totalOppsCreated * winRate * acv) / (avgSalesCycle / 365)
