@@ -1,39 +1,70 @@
-import { SalesData } from '../types/sales';
+import { SalesData, ChannelKPI } from '../types/sales';
 
-export const calculateChannelKPIs = (data: SalesData[]) => {
+const getMonthFromDate = (dateStr: string): number => {
+  if (!dateStr) return 0;
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return 0;
+  return parseInt(parts[1], 10);
+};
+
+const parseValue = (value: string | number): number => {
+  if (typeof value === 'number') return value;
+  return parseFloat(value.replace(/[€.]/g, '').replace(',', '.')) || 0;
+};
+
+const getDaysDifference = (startDate: string, endDate: string): number => {
+  if (!startDate || !endDate) return 0;
+  
+  const parseDate = (dateStr: string): Date => {
+    const [day, month, year] = dateStr.split('/').map(Number);
+    return new Date(year < 100 ? 2000 + year : year, month - 1, day);
+  };
+
+  const start = parseDate(startDate);
+  const end = parseDate(endDate);
+  
+  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+export const calculateChannelKPIs = (data: SalesData[], selectedMonth: number): ChannelKPI[] => {
   // Raggruppa i dati per canale
-  const channelGroups = data.reduce((acc, curr) => {
-    const channel = curr.Canale || 'Other';
-    if (!acc[channel]) {
-      acc[channel] = [];
-    }
-    acc[channel].push(curr);
-    return acc;
-  }, {} as Record<string, SalesData[]>);
+  const channels = [...new Set(data.map(row => row.Canale))];
+  
+  const results = channels.map(channel => {
+    const channelData = data.filter(row => row.Canale === channel);
 
-  return Object.entries(channelGroups).map(([channel, channelData]) => {
     // Total Opps Created (Meeting effettuato + SQL = Sì)
-    const totalOppsCreated = channelData.filter(
-      row => row['Meeting Effettuato (SQL)'] && row.SQL === 'Sì'
+    const totalOppsCreated = channelData.filter(row => 
+      getMonthFromDate(row['Meeting Effettuato (SQL)'] as string) === selectedMonth && 
+      row.SQL === 'Si'
     ).length;
 
-    // Total Closed Lost Opps (Persi + Stato = Perso)
-    const totalClosedLostOpps = channelData.filter(
-      row => row.Persi && row.Stato === 'Perso'
+    // Total Closed Lost Opps
+    const totalClosedLostOpps = channelData.filter(row =>
+      getMonthFromDate(row.Persi) === selectedMonth &&
+      row.SQL === 'Si' &&
+      row.Stato === 'Perso'
     ).length;
 
-    // Total Closed Won Opps (Contratti Chiusi + Stato = Cliente)
-    const totalClosedWonOpps = channelData.filter(
-      row => row['Contratti Chiusi'] && row.Stato === 'Cliente'
-    ).length;
+    // Total Closed Won Opps (Cliente + Analisi)
+    const totalClosedWonOpps = 
+      channelData.filter(row =>
+        row.Stato === 'Cliente' &&
+        getMonthFromDate(row['Contratti Chiusi']) === selectedMonth
+      ).length +
+      channelData.filter(row =>
+        row.Stato === 'Analisi' &&
+        getMonthFromDate(row['Analisi Firmate']) === selectedMonth
+      ).length;
 
     // Total Closed Won Revenue
     const totalClosedWonRevenue = channelData.reduce((sum, row) => {
-      if (row['Contratti Chiusi'] && row.Stato === 'Cliente') {
-        const value = typeof row['Valore Tot €'] === 'string' 
-          ? parseFloat(row['Valore Tot €'].replace(/[€.]/g, '').replace(',', '.'))
-          : row['Valore Tot €'];
-        return sum + (value || 0);
+      const isRelevantMonth = 
+        getMonthFromDate(row['Analisi Firmate']) === selectedMonth ||
+        getMonthFromDate(row['Contratti Chiusi']) === selectedMonth;
+      
+      if (isRelevantMonth) {
+        return sum + parseValue(row['Valore Tot €']);
       }
       return sum;
     }, 0);
@@ -42,19 +73,17 @@ export const calculateChannelKPIs = (data: SalesData[]) => {
     const acv = totalClosedWonOpps > 0 ? totalClosedWonRevenue / totalClosedWonOpps : 0;
 
     // Closed Won Average Sales Cycle
-    const salesCycles = channelData
-      .filter(row => row['Contratti Chiusi'] && row.Stato === 'Cliente' && row['Meeting Effettuato (SQL)'])
-      .map(row => {
-        const meetingDate = parseDate(row['Meeting Effettuato (SQL)'] as string);
-        const closingDate = parseDate(row['Contratti Chiusi']);
-        if (meetingDate && closingDate) {
-          return Math.floor((closingDate.getTime() - meetingDate.getTime()) / (1000 * 60 * 60 * 24));
-        }
-        return 0;
-      });
-    
-    const avgSalesCycle = salesCycles.length > 0 
-      ? salesCycles.reduce((sum, days) => sum + days, 0) / salesCycles.length 
+    const wonDeals = channelData.filter(row => 
+      (row.Stato === 'Cliente' || row.Stato === 'Analisi') &&
+      row['Meeting Effettuato (SQL)'] &&
+      (row['Contratti Chiusi'] || row['Analisi Firmate'])
+    );
+
+    const avgSalesCycle = wonDeals.length > 0
+      ? wonDeals.reduce((sum, row) => {
+          const endDate = row.Stato === 'Cliente' ? row['Contratti Chiusi'] : row['Analisi Firmate'];
+          return sum + getDaysDifference(row['Meeting Effettuato (SQL)'] as string, endDate);
+        }, 0) / wonDeals.length
       : 0;
 
     // Win Rate
@@ -79,16 +108,11 @@ export const calculateChannelKPIs = (data: SalesData[]) => {
       pipelineContribution: 0, // Sarà calcolato dopo
     };
   });
-};
 
-// Funzione helper per il parsing delle date
-const parseDate = (dateString: string | null | undefined): Date | null => {
-  if (!dateString) return null;
-  const parts = dateString.split('/');
-  if (parts.length !== 3) return null;
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1;
-  const year = parseInt(parts[2], 10);
-  const fullYear = year < 100 ? 2000 + year : year;
-  return new Date(fullYear, month, day);
+  // Calcola pipeline contribution
+  const totalRevenue = results.reduce((sum, channel) => sum + channel.totalClosedWonRevenue, 0);
+  return results.map(result => ({
+    ...result,
+    pipelineContribution: totalRevenue > 0 ? (result.totalClosedWonRevenue / totalRevenue) * 100 : 0
+  }));
 };

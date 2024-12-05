@@ -13,6 +13,7 @@ import { AlertCircle } from "lucide-react";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const navigate = useNavigate();
   
   const { data: salesData, isLoading, error } = useQuery({
@@ -67,6 +68,11 @@ const Index = () => {
     toast.info(`Aggiornamento dashboard per il periodo: ${value}`);
   };
 
+  const handleMonthChange = (month: number) => {
+    setSelectedMonth(month);
+    toast.info(`Aggiornamento dashboard per il mese: ${month}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-7xl">
@@ -79,7 +85,10 @@ const Index = () => {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <TimeRangeFilter onFilterChange={handleFilterChange} />
+              <TimeRangeFilter 
+                onFilterChange={handleFilterChange} 
+                onMonthChange={handleMonthChange}
+              />
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
@@ -117,7 +126,7 @@ const Index = () => {
             </div>
 
             <div className="mt-8">
-              <SummaryTable data={salesData} />
+              <SummaryTable data={salesData} selectedMonth={selectedMonth} />
             </div>
           </>
         )}
