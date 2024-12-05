@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SalesData } from "@/types/sales";
 
+export type { SalesData };
+
 export async function fetchSalesData(range: string): Promise<any[]> {
   try {
     // First get the user's sheet configuration

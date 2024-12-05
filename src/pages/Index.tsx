@@ -22,8 +22,10 @@ const Index = () => {
     queryKey: ["sales", timeRange],
     queryFn: () => fetchSalesData(timeRange),
     retry: false,
-    onSuccess: () => {
-      toast.success("Data loaded successfully!");
+    meta: {
+      onSuccess: () => {
+        toast.success("Data loaded successfully!");
+      }
     }
   });
 
@@ -187,7 +189,7 @@ const Index = () => {
                   key={key}
                   title={kpi.title}
                   value={kpi.value}
-                  className={`animate-fade-in [animation-delay:${index * 100}ms] bg-white/80 backdrop-blur-lg border border-gray-100`}
+                  className={`animate-fade-in [animation-delay:${index * 100}ms]`}
                 />
               ))}
             </div>

@@ -12,6 +12,7 @@ import { calculateChannelKPIs } from '../utils/salesKpiCalculations';
 import { SalesData, ChannelKPI } from '../types/sales';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from './ui/button';
+import { ScrollArea } from './ui/scroll-area';
 
 interface SummaryTableProps {
   data?: any[];
@@ -114,82 +115,85 @@ export function SummaryTable({ data }: SummaryTableProps) {
         Channel Performance Summary
       </h3>
 
-      <SalesDataPreview data={mappedData} />
-
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50/50">
-              {[
-                { key: 'source', label: 'Source' },
-                { key: 'totalOppsCreated', label: 'Total Opps. created' },
-                { key: 'totalClosedLostOpps', label: 'Total Closed Lost Opps.' },
-                { key: 'totalClosedWonOpps', label: 'Total Closed Won Opps.' },
-                { key: 'totalClosedWonRevenue', label: 'Total Closed Won Revenue' },
-                { key: 'acv', label: 'ACV' },
-                { key: 'closedWonAvgSalesCycle', label: 'Closed Won Avg. Sales Cycle' },
-                { key: 'winRate', label: 'Win-Rate' },
-                { key: 'pipelineVelocity', label: 'Pipeline Velocity' },
-                { key: 'pipelineContribution', label: '% of pipeline contribution' }
-              ].map(({ key, label }) => (
-                <TableHead key={key} className="text-right">
-                  <Button
-                    variant="ghost"
-                    onClick={() => handleSort(key as keyof ChannelKPI)}
-                    className="flex items-center justify-end w-full hover:text-blue-600"
-                  >
-                    {label}
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {channelSummary.map((row, index) => (
-              <TableRow 
-                key={row.source}
-                className={index === channelSummary.length - 1 ? 'font-semibold bg-gray-50/50' : 'hover:bg-gray-50/30'}
-              >
-                <TableCell>{row.source}</TableCell>
-                <TableCell className="text-right">
-                  {row.totalOppsCreated}
-                </TableCell>
-                <TableCell className="text-right">
-                  {row.totalClosedLostOpps}
-                </TableCell>
-                <TableCell className="text-right">
-                  {row.totalClosedWonOpps}
-                </TableCell>
-                <TableCell className="text-right">
-                  €{row.totalClosedWonRevenue.toLocaleString('it-IT', {
-                    minimumFractionDigits: 2,
-                  })}
-                </TableCell>
-                <TableCell className="text-right">
-                  €{row.acv.toLocaleString('it-IT', {
-                    minimumFractionDigits: 2,
-                  })}
-                </TableCell>
-                <TableCell className="text-right">
-                  {Math.round(row.closedWonAvgSalesCycle)} giorni
-                </TableCell>
-                <TableCell className="text-right">
-                  {row.winRate.toFixed(2)}%
-                </TableCell>
-                <TableCell className="text-right">
-                  €{row.pipelineVelocity.toLocaleString('it-IT', {
-                    minimumFractionDigits: 2,
-                  })}
-                </TableCell>
-                <TableCell className="text-right">
-                  {row.pipelineContribution.toFixed(2)}%
-                </TableCell>
+      <ScrollArea className="h-[600px] rounded-md">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50/50">
+                {[
+                  { key: 'source', label: 'Source' },
+                  { key: 'totalOppsCreated', label: 'Total Opps. created' },
+                  { key: 'totalClosedLostOpps', label: 'Total Closed Lost Opps.' },
+                  { key: 'totalClosedWonOpps', label: 'Total Closed Won Opps.' },
+                  { key: 'totalClosedWonRevenue', label: 'Total Closed Won Revenue' },
+                  { key: 'acv', label: 'ACV' },
+                  { key: 'closedWonAvgSalesCycle', label: 'Closed Won Avg. Sales Cycle' },
+                  { key: 'winRate', label: 'Win-Rate' },
+                  { key: 'pipelineVelocity', label: 'Pipeline Velocity' },
+                  { key: 'pipelineContribution', label: '% of pipeline contribution' }
+                ].map(({ key, label }) => (
+                  <TableHead key={key} className="text-right">
+                    <Button
+                      variant="ghost"
+                      onClick={() => handleSort(key as keyof ChannelKPI)}
+                      className="flex items-center justify-end w-full hover:text-blue-600"
+                    >
+                      {label}
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {channelSummary.map((row, index) => (
+                <TableRow 
+                  key={row.source}
+                  className={cn(
+                    index === channelSummary.length - 1 ? 'font-semibold bg-gray-50/50' : 'hover:bg-gray-50/30',
+                    'transition-colors duration-200'
+                  )}
+                >
+                  <TableCell>{row.source}</TableCell>
+                  <TableCell className="text-right">
+                    {row.totalOppsCreated}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {row.totalClosedLostOpps}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {row.totalClosedWonOpps}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    €{row.totalClosedWonRevenue.toLocaleString('it-IT', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    €{row.acv.toLocaleString('it-IT', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {Math.round(row.closedWonAvgSalesCycle)} giorni
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {row.winRate.toFixed(2)}%
+                  </TableCell>
+                  <TableCell className="text-right">
+                    €{row.pipelineVelocity.toLocaleString('it-IT', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {row.pipelineContribution.toFixed(2)}%
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </ScrollArea>
     </div>
   );
 }

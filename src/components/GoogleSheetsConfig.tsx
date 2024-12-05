@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export function GoogleSheetsConfig() {
@@ -64,9 +64,9 @@ export function GoogleSheetsConfig() {
           clearInterval(interval);
           return 100;
         }
-        return prev + 10;
+        return Math.min(prev + 5, 100);
       });
-    }, 200);
+    }, 100);
     return interval;
   };
 
@@ -118,15 +118,16 @@ export function GoogleSheetsConfig() {
       setIsSubmitting(false);
       clearInterval(progressInterval);
       setProgress(100);
+      setTimeout(() => setProgress(0), 500);
     }
   };
 
   if (isConfigured && !error) {
     return (
       <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100">
-        <Alert className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+        <Alert className="mb-4 bg-green-50 border-green-200">
+          <CheckCircle className="h-4 w-4 text-green-500" />
+          <AlertDescription className="text-green-700">
             Google Sheet configured and ready to use
           </AlertDescription>
         </Alert>
@@ -172,11 +173,11 @@ export function GoogleSheetsConfig() {
           />
         </div>
 
-        {isSubmitting && (
+        {isSubmitting && progress > 0 && (
           <div className="space-y-2">
-            <Progress value={progress} className="w-full" />
+            <Progress value={progress} className="w-full h-2" />
             <p className="text-sm text-gray-500 text-center">
-              Configuring your Google Sheet...
+              {progress < 100 ? "Configuring your Google Sheet..." : "Configuration complete!"}
             </p>
           </div>
         )}
