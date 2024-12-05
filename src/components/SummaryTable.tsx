@@ -7,13 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { SalesData } from '@/utils/googleSheets';
 
 interface SalesData {
   [key: string]: any;
   'Sales': string;
   'Canale': string;
-  'Meeting FIssato': string;
+  'Meeting Fissato': string;
   'Meeting Effettuato (SQL)': string;
   'Offerte Inviate': string;
   'Analisi Firmate': string;
@@ -56,37 +55,10 @@ export function SummaryTable({ data }: SummaryTableProps) {
     return parseFloat(numberString) || 0;
   };
 
-  // Mappare i dati utilizzando i nomi delle colonne
-  const mappedData = React.useMemo(() => {
+  const channelSummary = React.useMemo(() => {
     if (!data) return [];
 
-    // Supponendo che la prima riga contenga i nomi delle colonne
-    const [headerRow, ...dataRows] = data;
-
-    // Verifica che headerRow sia un array di stringhe
-    if (!Array.isArray(headerRow)) {
-      console.error('La prima riga dei dati non contiene i nomi delle colonne.');
-      return [];
-    }
-
-    const headers = headerRow as string[];
-
-    // Mappa ogni riga di dati a un oggetto con chiavi basate sui nomi delle colonne
-    const mapped = dataRows.map((row) => {
-      const rowData: { [key: string]: any } = {};
-      headers.forEach((header, index) => {
-        rowData[header] = row[index];
-      });
-      return rowData as SalesData;
-    });
-
-    return mapped;
-  }, [data]);
-
-  const channelSummary = React.useMemo(() => {
-    if (!mappedData) return [];
-
-    const summary = mappedData.reduce((acc, curr) => {
+    const summary = data.reduce((acc, curr) => {
       const channel = curr['Canale'] || 'Other';
       if (!acc[channel]) {
         acc[channel] = {
@@ -109,7 +81,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       const closingDate = parseDate(curr['Contratti Chiusi']);
 
       // Total Opps Created
-      if (meetingDate && curr['SQL'] === 'Si') {
+      if (meetingDate && curr['SQL'] === 'Sì') {
         acc[channel].totalOppsCreated += 1;
       }
 
@@ -173,7 +145,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
             : 0,
       };
     });
-  }, [mappedData]);
+  }, [data]);
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm">
@@ -182,12 +154,12 @@ export function SummaryTable({ data }: SummaryTableProps) {
       </h3>
 
       {/* Visualizzazione delle prime due righe e dell'ultima riga dei dati */}
-      {mappedData && mappedData.length > 0 && (
+      {data && data.length > 0 && (
         <div className="mb-6">
           <h4 className="text-md font-semibold">Dati letti dal Google Sheet:</h4>
           <pre className="bg-gray-100 p-4 rounded">
             {JSON.stringify(
-              [mappedData[0], mappedData[1], mappedData[mappedData.length - 1]],
+              [data[0], data[1], data[data.length - 1]],
               null,
               2
             )}
