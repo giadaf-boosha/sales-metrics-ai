@@ -24,7 +24,13 @@ interface SalesData {
   Servizio: string;
   'Valore Tot €': string | number;
   Azienda: string;
-  // Aggiungi qui altri campi se leggi più colonne
+  'Nome Persona': string;
+  Ruolo: string;
+  Dimensioni: string;
+  Settore: string;
+  'Come mai ha accettato?': string;
+  Obiezioni: string;
+  Note: string;
 }
 
 interface SummaryTableProps {
@@ -50,7 +56,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
     return parseFloat(numberString) || 0;
   };
 
-  // Definisci manualmente le intestazioni (nomi delle colonne)
+  // Definisci manualmente le intestazioni (nomi delle colonne) per le colonne dalla A alla V
   const headers = [
     'ID', // Index 0
     'Sales', // Index 1
@@ -66,17 +72,24 @@ export function SummaryTable({ data }: SummaryTableProps) {
     'Servizio', // Index 11
     'Valore Tot €', // Index 12
     'Azienda', // Index 13
-    // Aggiungi qui altri campi se leggi più colonne
+    'Nome Persona', // Index 14
+    'Ruolo', // Index 15
+    'Dimensioni', // Index 16
+    'Settore', // Index 17
+    'Come mai ha accettato?', // Index 18
+    'Obiezioni', // Index 19
+    'Note', // Index 20
+    // Aggiungi altre colonne se necessario, assicurati che l'indice corrisponda
   ];
 
   // Mappare i dati utilizzando le intestazioni
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    const mapped = data.map((row) => {
+    const mapped = data.map((row, rowIndex) => {
       const rowData: { [key: string]: any } = {};
       headers.forEach((header, index) => {
-        rowData[header] = row[index] || '';
+        rowData[header] = row[index] !== undefined ? row[index] : '';
       });
       return rowData as SalesData;
     });
@@ -204,7 +217,11 @@ export function SummaryTable({ data }: SummaryTableProps) {
           </h4>
           <pre className="bg-gray-100 p-4 rounded">
             {JSON.stringify(
-              [mappedData[0], mappedData[1], mappedData[mappedData.length - 1]],
+              [
+                mappedData[0],
+                mappedData[1],
+                mappedData[mappedData.length - 1],
+              ],
               null,
               2
             )}
