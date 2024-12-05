@@ -141,7 +141,21 @@ export function SummaryTable({ data }: SummaryTableProps) {
                   { key: 'closedWonAvgSalesCycle', label: 'Closed Won Avg. Sales Cycle' },
                   { key: 'winRate', label: 'Win-Rate' },
                   { key: 'pipelineVelocity', label: 'Pipeline Velocity' },
-                  { key: 'pipelineContribution', label: '% of pipeline contribution' }
+                  { key: 'pipelineContribution', label: '% of pipeline contribution' },
+                  { key: 'meetingScheduled', label: 'Meeting Scheduled' },
+                  { key: 'meetingCompleted', label: 'Meeting Completed' },
+                  { key: 'proposalSent', label: 'Proposal Sent' },
+                  { key: 'contractsClosed', label: 'Contracts Closed' },
+                  { key: 'status', label: 'Status' },
+                  { key: 'service', label: 'Service' },
+                  { key: 'company', label: 'Company' },
+                  { key: 'personName', label: 'Person Name' },
+                  { key: 'role', label: 'Role' },
+                  { key: 'size', label: 'Size' },
+                  { key: 'sector', label: 'Sector' },
+                  { key: 'acceptanceReason', label: 'Acceptance Reason' },
+                  { key: 'objections', label: 'Objections' },
+                  { key: 'notes', label: 'Notes' }
                 ].map(({ key, label }) => (
                   <TableHead key={key} className="text-right">
                     <Button
@@ -198,6 +212,49 @@ export function SummaryTable({ data }: SummaryTableProps) {
                   </TableCell>
                   <TableCell className="text-right text-xs whitespace-nowrap">
                     {row.pipelineContribution.toFixed(2)}%
+                  </TableCell>
+                  {/* Additional columns */}
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.meetingScheduled || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.meetingCompleted || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.proposalSent || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.contractsClosed || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.status || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.service || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.company || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.personName || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.role || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.size || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.sector || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.acceptanceReason || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.objections || '-'}
+                  </TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
+                    {row.notes || '-'}
                   </TableCell>
                 </TableRow>
               ))}
