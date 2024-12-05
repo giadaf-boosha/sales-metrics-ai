@@ -7,33 +7,34 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import type { SalesData } from '@/utils/googleSheets';
 
 interface SalesData {
   [key: string]: any;
-  'Sales': string;
-  'Canale': string;
-  'Meeting Fissato': string;
-  'Meeting Effettuato (SQL)': string;
-  'Offerte Inviate': string;
-  'Analisi Firmate': string;
-  'Contratti Chiusi': string;
-  'Persi': string;
-  'SQL': string;
-  'Stato': string;
-  'Servizio': string;
-  'Valore Tot €': string;
-  'Azienda': string;
+  ID: string;
+  Sales: string;
+  Canale: string;
+  'Meeting Fissato': string | Date;
+  'Meeting Effettuato (SQL)': string | Date;
+  'Offerte Inviate': string | Date;
+  'Contratti Chiusi': string | Date;
+  Persi: string | Date;
+  SQL: string;
+  Stato: string;
+  Servizio: string;
+  'Valore Tot €': string | number;
+  Azienda: string;
   'Nome Persona': string;
-  'Ruolo': string;
-  'Dimensioni': string;
-  'Settore': string;
+  Ruolo: string;
+  Dimensioni: string;
+  Settore: string;
   'Come mai ha accettato?': string;
-  'Obiezioni': string;
-  'Note': string;
+  Obiezioni: string;
+  Note: string;
 }
 
 interface SummaryTableProps {
-  data?: SalesData[];
+  data?: any[]; // Dati grezzi dal Google Sheet
 }
 
 export function SummaryTable({ data }: SummaryTableProps) {
@@ -55,10 +56,50 @@ export function SummaryTable({ data }: SummaryTableProps) {
     return parseFloat(numberString) || 0;
   };
 
-  const channelSummary = React.useMemo(() => {
-    if (!data) return [];
+  // Mappare i dati utilizzando i nomi delle colonne
+  const mappedData = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
 
-    const summary = data.reduce((acc, curr) => {
+    // Supponendo che la prima riga contenga i nomi delle colonne
+    const [headerRow, ...dataRows] = data;
+
+    // Verifica che headerRow sia un array di stringhe
+    if (!Array.isArray(headerRow)) {
+      console.error('La prima riga dei dati non contiene i nomi delle colonne.');
+      return [];
+    }
+
+    const headers = headerRow as string[];
+
+    // Mappa ogni riga di dati a un oggetto con chiavi basate sui nomi delle colonne
+    const mapped = dataRows.map((row) => {
+      const rowData: { [key: string]: any } = {};
+      headers.forEach((header, index) => {
+        rowData[header] = row[index];
+      });
+      return rowData as SalesData;
+    });
+
+    // Converti date e valori monetari nei tipi appropriati
+    const convertedData = mapped.map((row) => {
+      return {
+        ...row,
+        'Meeting Fissato': parseDate(row['Meeting Fissato']),
+        'Meeting Effettuato (SQL)': parseDate(row['Meeting Effettuato (SQL)']),
+        'Offerte Inviate': parseDate(row['Offerte Inviate']),
+        'Contratti Chiusi': parseDate(row['Contratti Chiusi']),
+        Persi: parseDate(row['Persi']),
+        'Valore Tot €': parseCurrency(row['Valore Tot €']),
+      };
+    });
+
+    return convertedData;
+  }, [data]);
+
+  const channelSummary = React.useMemo(() => {
+    if (!mappedData || mappedData.length === 0) return [];
+
+    const summary = mappedData.reduce((acc, curr) => {
       const channel = curr['Canale'] || 'Other';
       if (!acc[channel]) {
         acc[channel] = {
@@ -76,9 +117,9 @@ export function SummaryTable({ data }: SummaryTableProps) {
         };
       }
 
-      const meetingDate = parseDate(curr['Meeting Effettuato (SQL)']);
-      const lostDate = parseDate(curr['Persi']);
-      const closingDate = parseDate(curr['Contratti Chiusi']);
+      const meetingDate = curr['Meeting Effettuato (SQL)'];
+      const lostDate = curr['Persi'];
+      const closingDate = curr['Contratti Chiusi'];
 
       // Total Opps Created
       if (meetingDate && curr['SQL'] === 'Sì') {
@@ -93,12 +134,13 @@ export function SummaryTable({ data }: SummaryTableProps) {
       // Total Closed Won Opps & Revenue
       if (closingDate && curr['Stato'] === 'Cliente') {
         acc[channel].totalClosedWonOpps += 1;
-        acc[channel].totalClosedWonRevenue += parseCurrency(curr['Valore Tot €']);
+        acc[channel].totalClosedWonRevenue += curr['Valore Tot €'] || 0;
 
         // Calcolo del ciclo di vendita per le opportunità vinte
         if (meetingDate) {
           const salesCycleDays = Math.floor(
-            (closingDate.getTime() - meetingDate.getTime()) / (1000 * 60 * 60 * 24)
+            (closingDate.getTime() - meetingDate.getTime()) /
+              (1000 * 60 * 60 * 24)
           );
           acc[channel].totalSalesCycleDays += salesCycleDays;
         }
@@ -145,7 +187,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
             : 0,
       };
     });
-  }, [data]);
+  }, [mappedData]);
 
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm">
@@ -154,12 +196,16 @@ export function SummaryTable({ data }: SummaryTableProps) {
       </h3>
 
       {/* Visualizzazione delle prime due righe e dell'ultima riga dei dati */}
-      {data && data.length > 0 && (
+      {mappedData && mappedData.length > 0 && (
         <div className="mb-6">
           <h4 className="text-md font-semibold">Dati letti dal Google Sheet:</h4>
           <pre className="bg-gray-100 p-4 rounded">
             {JSON.stringify(
-              [data[0], data[1], data[data.length - 1]],
+              [
+                mappedData[0],
+                mappedData[1],
+                mappedData[mappedData.length - 1],
+              ],
               null,
               2
             )}
