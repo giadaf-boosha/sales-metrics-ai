@@ -44,6 +44,7 @@ export function GoogleSheetsConfig() {
       if (data) {
         setCurrentConfig(data);
         setIsConfigured(true);
+        toast.success("Configuration loaded successfully");
       }
     } catch (err) {
       console.error("Error fetching current config:", err);
@@ -74,6 +75,7 @@ export function GoogleSheetsConfig() {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setProgress(0);
 
     const progressInterval = simulateProgress();
 
@@ -118,7 +120,11 @@ export function GoogleSheetsConfig() {
       setIsSubmitting(false);
       clearInterval(progressInterval);
       setProgress(100);
-      setTimeout(() => setProgress(0), 500);
+      setTimeout(() => {
+        if (!error) {
+          setProgress(0);
+        }
+      }, 500);
     }
   };
 
@@ -131,6 +137,14 @@ export function GoogleSheetsConfig() {
             Google Sheet configured and ready to use
           </AlertDescription>
         </Alert>
+        {progress > 0 && (
+          <div className="space-y-2">
+            <Progress value={progress} className="w-full h-2" />
+            <p className="text-sm text-gray-500 text-center">
+              {progress < 100 ? "Loading data..." : "Data loaded successfully!"}
+            </p>
+          </div>
+        )}
       </div>
     );
   }

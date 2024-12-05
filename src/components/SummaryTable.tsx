@@ -29,7 +29,6 @@ export function SummaryTable({ data }: SummaryTableProps) {
 
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
-
     return data.map((row): SalesData => ({
       ID: row[0] || '',
       Sales: row[1] || '',
@@ -80,12 +79,23 @@ export function SummaryTable({ data }: SummaryTableProps) {
       totalClosedLostOpps: acc.totalClosedLostOpps + curr.totalClosedLostOpps,
       totalClosedWonOpps: acc.totalClosedWonOpps + curr.totalClosedWonOpps,
       totalClosedWonRevenue: acc.totalClosedWonRevenue + curr.totalClosedWonRevenue,
-      acv: 0, // Will be calculated below
-      closedWonAvgSalesCycle: 0, // Will be calculated below
-      winRate: 0, // Will be calculated below
+      acv: 0,
+      closedWonAvgSalesCycle: 0,
+      winRate: 0,
       pipelineVelocity: acc.pipelineVelocity + curr.pipelineVelocity,
       pipelineContribution: 100
-    }));
+    }), {
+      source: 'Total',
+      totalOppsCreated: 0,
+      totalClosedLostOpps: 0,
+      totalClosedWonOpps: 0,
+      totalClosedWonRevenue: 0,
+      acv: 0,
+      closedWonAvgSalesCycle: 0,
+      winRate: 0,
+      pipelineVelocity: 0,
+      pipelineContribution: 0
+    });
 
     // Calculate averages for specific metrics
     totals.acv = totals.totalClosedWonOpps > 0 
@@ -111,13 +121,13 @@ export function SummaryTable({ data }: SummaryTableProps) {
   };
 
   return (
-    <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100">
+    <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100 max-h-[calc(100vh-24rem)] overflow-hidden">
       <h3 className="mb-6 text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
         Channel Performance Summary
       </h3>
 
-      <ScrollArea className="h-[600px] rounded-md">
-        <div className="overflow-x-auto">
+      <ScrollArea className="h-full rounded-md">
+        <div className="overflow-x-auto min-w-full">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50">
@@ -137,10 +147,10 @@ export function SummaryTable({ data }: SummaryTableProps) {
                     <Button
                       variant="ghost"
                       onClick={() => handleSort(key as keyof ChannelKPI)}
-                      className="flex items-center justify-end w-full hover:text-blue-600"
+                      className="flex items-center justify-end w-full hover:text-blue-600 text-xs whitespace-nowrap"
                     >
                       {label}
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      <ArrowUpDown className="ml-2 h-3 w-3" />
                     </Button>
                   </TableHead>
                 ))}
@@ -155,38 +165,38 @@ export function SummaryTable({ data }: SummaryTableProps) {
                     'transition-colors duration-200'
                   )}
                 >
-                  <TableCell>{row.source}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-xs">{row.source}</TableCell>
+                  <TableCell className="text-right text-xs">
                     {row.totalOppsCreated}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     {row.totalClosedLostOpps}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     {row.totalClosedWonOpps}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     €{row.totalClosedWonRevenue.toLocaleString('it-IT', {
                       minimumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     €{row.acv.toLocaleString('it-IT', {
                       minimumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     {Math.round(row.closedWonAvgSalesCycle)} giorni
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     {row.winRate.toFixed(2)}%
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     €{row.pipelineVelocity.toLocaleString('it-IT', {
                       minimumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right text-xs">
                     {row.pipelineContribution.toFixed(2)}%
                   </TableCell>
                 </TableRow>
@@ -198,4 +208,3 @@ export function SummaryTable({ data }: SummaryTableProps) {
     </div>
   );
 }
-
