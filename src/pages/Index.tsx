@@ -30,34 +30,88 @@ const Index = () => {
   // Calcola i KPI dai dati
   const kpiData = {
     totalOpportunities: {
-      value: salesData ? salesData.length : 0,
+      value: salesData ? salesData.filter(d => 
+        d['Meeting Effettuato (SQL)'] && // Verifica che ci sia una data del meeting
+        d.SQL === 'Si'
+      ).length : 0,
       title: "Opportunità Totali",
     },
     wonOpportunities: {
-      value: salesData ? salesData.filter(d => d.contractsClosed === 'true').length : 0,
+      value: salesData ? (
+        salesData.filter(d => 
+          (d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
+          (d.Stato === 'Analisi' && d['Analisi Firmate'])
+        ).length
+      ) : 0,
       title: "Opportunità Vinte",
     },
     totalRevenue: {
       value: salesData 
-        ? `€${salesData.reduce((sum, d) => sum + (d.value || 0), 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`
+        ? `€${salesData.reduce((sum, d) => {
+            if ((d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
+                (d.Stato === 'Analisi' && d['Analisi Firmate'])) {
+              return sum + parseFloat(String(d['Valore Tot €']).replace(/[€.]/g, '').replace(',', '.')) || 0;
+            }
+            return sum;
+          }, 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`
         : "€0,00",
       title: "Revenue Totale",
     },
     winRate: {
       value: salesData && salesData.length > 0
-        ? `${((salesData.filter(d => d.contractsClosed === 'true').length / salesData.length) * 100).toFixed(2)}%`
+        ? (() => {
+            const totalOpps = salesData.filter(d => 
+              d['Meeting Effettuato (SQL)'] && 
+              d.SQL === 'Si'
+            ).length;
+            
+            const wonOpps = salesData.filter(d => 
+              (d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
+              (d.Stato === 'Analisi' && d['Analisi Firmate'])
+            ).length;
+            
+            return `${((wonOpps / totalOpps) * 100).toFixed(2)}%`;
+          })()
         : "0,00%",
       title: "Win Rate",
     },
     lostRate: {
       value: salesData && salesData.length > 0
-        ? `${((salesData.filter(d => d.status === 'Lost').length / salesData.length) * 100).toFixed(2)}%`
+        ? (() => {
+            const totalOpps = salesData.filter(d => 
+              d['Meeting Effettuato (SQL)'] && 
+              d.SQL === 'Si'
+            ).length;
+            
+            const lostOpps = salesData.filter(d =>
+              d.Persi && 
+              d.SQL === 'Si' &&
+              d.Stato === 'Perso'
+            ).length;
+            
+            return `${((lostOpps / totalOpps) * 100).toFixed(2)}%`;
+          })()
         : "0,00%",
       title: "Lost Rate",
     },
     pipelineVelocity: {
       value: salesData
-        ? `€${(salesData.reduce((sum, d) => sum + (d.value || 0), 0) / Math.max(1, salesData.length)).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`
+        ? (() => {
+            const totalRevenue = salesData.reduce((sum, d) => {
+              if ((d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
+                  (d.Stato === 'Analisi' && d['Analisi Firmate'])) {
+                return sum + parseFloat(String(d['Valore Tot €']).replace(/[€.]/g, '').replace(',', '.')) || 0;
+              }
+              return sum;
+            }, 0);
+
+            const totalOpps = salesData.filter(d => 
+              d['Meeting Effettuato (SQL)'] && 
+              d.SQL === 'Si'
+            ).length;
+
+            return `€${(totalRevenue / Math.max(1, totalOpps)).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`;
+          })()
         : "€0,00",
       title: "Pipeline Velocity",
     }
@@ -126,7 +180,7 @@ const Index = () => {
             </div>
 
             <div className="mt-8">
-              <SummaryTable data={salesData} selectedMonth={selectedMonth} />
+              <SummaryTable data={salesData} />
             </div>
           </>
         )}
