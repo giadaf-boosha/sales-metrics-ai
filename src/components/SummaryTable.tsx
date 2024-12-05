@@ -148,22 +148,24 @@ export function SummaryTable({ data }: SummaryTableProps) {
         Channel Performance Summary
       </h3>
 
-      <ScrollArea className="h-[calc(100vh-24rem)] rounded-md">
-        <div className="min-w-full">
-          <Table>
-            <TableHeaderComponent onSort={handleSort} />
-            <TableBody>
-              {channelSummary.map((row, index) => (
-                <TableRowComponent 
-                  key={row.source}
-                  row={row}
-                  isTotal={index === channelSummary.length - 1}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </ScrollArea>
+      <div className="relative overflow-auto">
+        <ScrollArea className="h-[calc(100vh-24rem)] w-full" orientation="both">
+          <div className="min-w-[1500px]">
+            <Table>
+              <TableHeaderComponent onSort={handleSort} />
+              <TableBody>
+                {channelSummary.map((row, index) => (
+                  <TableRowComponent 
+                    key={row.source}
+                    row={row}
+                    isTotal={index === channelSummary.length - 1}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 }
