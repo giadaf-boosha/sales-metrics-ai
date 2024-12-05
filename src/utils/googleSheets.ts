@@ -1,25 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { SalesData } from "@/types/sales";
 
-export interface SalesData {
-  channel: string;
-  meetingScheduled: string;
-  meetingCompleted: string;
-  proposalSent: string;
-  contractsClosed: string;
-  status: string;
-  service: string;
-  value: number;
-  company: string;
-  personName: string;
-  role: string;
-  sector: string;
-  closingTime?: number;
-  sql: string;
-  lostDate: string;
-}
-
-export async function fetchSalesData(range: string): Promise<SalesData[]> {
+export async function fetchSalesData(range: string): Promise<any[]> {
   try {
     // First get the user's sheet configuration
     const { data: { user } } = await supabase.auth.getUser();
@@ -59,7 +42,6 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
       throw new Error('Invalid sheet configuration');
     }
 
-    // Modifichiamo il range per includere tutte le colonne fino a V
     const response = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${sheetConfig.sheet_id}/values/${sheetConfig.sheet_name}!A2:V?key=AIzaSyBu09MH4xCpr6hCmGK6Y28AVKvAY-K8haA`
     );
@@ -84,7 +66,6 @@ export async function fetchSalesData(range: string): Promise<SalesData[]> {
       throw new Error('Invalid data format');
     }
 
-    // Ora ritorniamo i dati grezzi senza trasformazione
     return data.values;
   } catch (error) {
     console.error('Error fetching sales data:', error);

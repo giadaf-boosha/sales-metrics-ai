@@ -11,16 +11,43 @@ import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { calculateChannelKPIs } from "@/utils/salesKpiCalculations";
+import { SalesData } from "@/types/sales";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const navigate = useNavigate();
   
-  const { data: salesData, isLoading, error } = useQuery({
+  const { data: rawData, isLoading, error } = useQuery({
     queryKey: ["sales", timeRange],
     queryFn: () => fetchSalesData(timeRange),
     retry: false
   });
+
+  // Map the raw data to SalesData type
+  const salesData = rawData?.map((row): SalesData => ({
+    ID: row[0] || '',
+    Sales: row[1] || '',
+    Canale: row[2] || '',
+    'Meeting Fissato': row[3] || '',
+    'Meeting Effettuato (SQL)': row[4] || '',
+    'Offerte Inviate': row[5] || '',
+    'Analisi Firmate': row[6] || '',
+    'Contratti Chiusi': row[7] || '',
+    Persi: row[8] || '',
+    SQL: row[9] || '',
+    Stato: row[10] || '',
+    Servizio: row[11] || '',
+    'Valore Tot €': row[12] || '',
+    Azienda: row[13] || '',
+    'Nome Persona': row[14] || '',
+    Ruolo: row[15] || '',
+    Dimensioni: row[16] || '',
+    Settore: row[17] || '',
+    'Come mai ha accettato?': row[18] || '',
+    Obiezioni: row[19] || '',
+    Note: row[20] || ''
+  }));
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -103,6 +130,11 @@ const Index = () => {
     toast.info(`Aggiornamento dashboard per il periodo: ${value}`);
   };
 
+  const handleMonthChange = (month: number) => {
+    setCurrentMonth(month);
+    console.log("Month changed to:", month);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-7xl">
@@ -117,6 +149,7 @@ const Index = () => {
             <div className="flex items-center gap-4">
               <TimeRangeFilter 
                 onFilterChange={handleFilterChange}
+                onMonthChange={handleMonthChange}
               />
               <button
                 onClick={handleLogout}
@@ -155,7 +188,7 @@ const Index = () => {
             </div>
 
             <div className="mt-8">
-              <SummaryTable data={salesData} />
+              <SummaryTable data={rawData} />
             </div>
           </>
         )}
