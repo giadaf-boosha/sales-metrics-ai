@@ -33,4 +33,23 @@ export interface ChannelKPI {
   winRate: number;
   pipelineVelocity: number;
   pipelineContribution: number;
+  meetingScheduled?: string;
+  meetingCompleted?: string;
+  proposalSent?: string;
+  contractsClosed?: string;
+  status?: string;
+  service?: string;
+  company?: string;
+  personName?: string;
+  role?: string;
+  size?: string;
+  sector?: string;
+  acceptanceReason?: string;
+  objections?: string;
+  notes?: string;
+}
+
+export interface TableColumn {
+  key: keyof ChannelKPI;
+  label: string;
 }

@@ -2,18 +2,12 @@ import React, { useState } from 'react';
 import {
   Table,
   TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from '@/components/ui/table';
-import { SalesDataPreview } from './SalesDataPreview';
 import { calculateChannelKPIs } from '../utils/salesKpiCalculations';
 import { SalesData, ChannelKPI } from '../types/sales';
-import { ArrowUpDown } from 'lucide-react';
-import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { TableHeaderComponent } from './TableHeader';
+import { TableRowComponent } from './TableRow';
 
 interface SummaryTableProps {
   data?: any[];
@@ -83,7 +77,21 @@ export function SummaryTable({ data }: SummaryTableProps) {
       closedWonAvgSalesCycle: 0,
       winRate: 0,
       pipelineVelocity: acc.pipelineVelocity + curr.pipelineVelocity,
-      pipelineContribution: 100
+      pipelineContribution: 100,
+      meetingScheduled: '-',
+      meetingCompleted: '-',
+      proposalSent: '-',
+      contractsClosed: '-',
+      status: '-',
+      service: '-',
+      company: '-',
+      personName: '-',
+      role: '-',
+      size: '-',
+      sector: '-',
+      acceptanceReason: '-',
+      objections: '-',
+      notes: '-'
     }), {
       source: 'Total',
       totalOppsCreated: 0,
@@ -94,7 +102,21 @@ export function SummaryTable({ data }: SummaryTableProps) {
       closedWonAvgSalesCycle: 0,
       winRate: 0,
       pipelineVelocity: 0,
-      pipelineContribution: 0
+      pipelineContribution: 0,
+      meetingScheduled: '-',
+      meetingCompleted: '-',
+      proposalSent: '-',
+      contractsClosed: '-',
+      status: '-',
+      service: '-',
+      company: '-',
+      personName: '-',
+      role: '-',
+      size: '-',
+      sector: '-',
+      acceptanceReason: '-',
+      objections: '-',
+      notes: '-'
     });
 
     // Calculate averages for specific metrics
@@ -129,134 +151,14 @@ export function SummaryTable({ data }: SummaryTableProps) {
       <ScrollArea className="h-[calc(100vh-24rem)] rounded-md">
         <div className="min-w-full">
           <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50/50">
-                {[
-                  { key: 'source', label: 'Source' },
-                  { key: 'totalOppsCreated', label: 'Total Opps. created' },
-                  { key: 'totalClosedLostOpps', label: 'Total Closed Lost Opps.' },
-                  { key: 'totalClosedWonOpps', label: 'Total Closed Won Opps.' },
-                  { key: 'totalClosedWonRevenue', label: 'Total Closed Won Revenue' },
-                  { key: 'acv', label: 'ACV' },
-                  { key: 'closedWonAvgSalesCycle', label: 'Closed Won Avg. Sales Cycle' },
-                  { key: 'winRate', label: 'Win-Rate' },
-                  { key: 'pipelineVelocity', label: 'Pipeline Velocity' },
-                  { key: 'pipelineContribution', label: '% of pipeline contribution' },
-                  { key: 'meetingScheduled', label: 'Meeting Scheduled' },
-                  { key: 'meetingCompleted', label: 'Meeting Completed' },
-                  { key: 'proposalSent', label: 'Proposal Sent' },
-                  { key: 'contractsClosed', label: 'Contracts Closed' },
-                  { key: 'status', label: 'Status' },
-                  { key: 'service', label: 'Service' },
-                  { key: 'company', label: 'Company' },
-                  { key: 'personName', label: 'Person Name' },
-                  { key: 'role', label: 'Role' },
-                  { key: 'size', label: 'Size' },
-                  { key: 'sector', label: 'Sector' },
-                  { key: 'acceptanceReason', label: 'Acceptance Reason' },
-                  { key: 'objections', label: 'Objections' },
-                  { key: 'notes', label: 'Notes' }
-                ].map(({ key, label }) => (
-                  <TableHead key={key} className="text-right">
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort(key as keyof ChannelKPI)}
-                      className="flex items-center justify-end w-full hover:text-blue-600 text-xs whitespace-nowrap"
-                    >
-                      {label}
-                      <ArrowUpDown className="ml-2 h-3 w-3" />
-                    </Button>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
+            <TableHeaderComponent onSort={handleSort} />
             <TableBody>
               {channelSummary.map((row, index) => (
-                <TableRow 
+                <TableRowComponent 
                   key={row.source}
-                  className={cn(
-                    index === channelSummary.length - 1 ? 'font-semibold bg-gray-50/50' : 'hover:bg-gray-50/30',
-                    'transition-colors duration-200'
-                  )}
-                >
-                  <TableCell className="text-xs whitespace-nowrap">{row.source}</TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.totalOppsCreated}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.totalClosedLostOpps}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.totalClosedWonOpps}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    €{row.totalClosedWonRevenue.toLocaleString('it-IT', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    €{row.acv.toLocaleString('it-IT', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {Math.round(row.closedWonAvgSalesCycle)} giorni
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.winRate.toFixed(2)}%
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    €{row.pipelineVelocity.toLocaleString('it-IT', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.pipelineContribution.toFixed(2)}%
-                  </TableCell>
-                  {/* Additional columns */}
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.meetingScheduled || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.meetingCompleted || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.proposalSent || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.contractsClosed || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.status || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.service || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.company || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.personName || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.role || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.size || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.sector || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.acceptanceReason || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.objections || '-'}
-                  </TableCell>
-                  <TableCell className="text-right text-xs whitespace-nowrap">
-                    {row.notes || '-'}
-                  </TableCell>
-                </TableRow>
+                  row={row}
+                  isTotal={index === channelSummary.length - 1}
+                />
               ))}
             </TableBody>
           </Table>
