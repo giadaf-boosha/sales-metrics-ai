@@ -10,10 +10,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { calculateChannelKPIs } from "@/utils/salesKpiCalculations";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const navigate = useNavigate();
   
   const { data: salesData, isLoading, error } = useQuery({
@@ -28,103 +28,79 @@ const Index = () => {
   };
 
   // Calcola i KPI dai dati
-  const kpiData = {
-    totalOpportunities: {
-      value: salesData ? salesData.filter(d => 
-        d['Meeting Effettuato (SQL)'] && // Verifica che ci sia una data del meeting
-        d.SQL === 'Si'
-      ).length : 0,
-      title: "Opportunità Totali",
-    },
-    wonOpportunities: {
-      value: salesData ? (
-        salesData.filter(d => 
-          (d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
-          (d.Stato === 'Analisi' && d['Analisi Firmate'])
-        ).length
-      ) : 0,
-      title: "Opportunità Vinte",
-    },
-    totalRevenue: {
-      value: salesData 
-        ? `€${salesData.reduce((sum, d) => {
-            if ((d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
-                (d.Stato === 'Analisi' && d['Analisi Firmate'])) {
-              return sum + parseFloat(String(d['Valore Tot €']).replace(/[€.]/g, '').replace(',', '.')) || 0;
-            }
-            return sum;
-          }, 0).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`
-        : "€0,00",
-      title: "Revenue Totale",
-    },
-    winRate: {
-      value: salesData && salesData.length > 0
-        ? (() => {
-            const totalOpps = salesData.filter(d => 
-              d['Meeting Effettuato (SQL)'] && 
-              d.SQL === 'Si'
-            ).length;
-            
-            const wonOpps = salesData.filter(d => 
-              (d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
-              (d.Stato === 'Analisi' && d['Analisi Firmate'])
-            ).length;
-            
-            return `${((wonOpps / totalOpps) * 100).toFixed(2)}%`;
-          })()
-        : "0,00%",
-      title: "Win Rate",
-    },
-    lostRate: {
-      value: salesData && salesData.length > 0
-        ? (() => {
-            const totalOpps = salesData.filter(d => 
-              d['Meeting Effettuato (SQL)'] && 
-              d.SQL === 'Si'
-            ).length;
-            
-            const lostOpps = salesData.filter(d =>
-              d.Persi && 
-              d.SQL === 'Si' &&
-              d.Stato === 'Perso'
-            ).length;
-            
-            return `${((lostOpps / totalOpps) * 100).toFixed(2)}%`;
-          })()
-        : "0,00%",
-      title: "Lost Rate",
-    },
-    pipelineVelocity: {
-      value: salesData
-        ? (() => {
-            const totalRevenue = salesData.reduce((sum, d) => {
-              if ((d.Stato === 'Cliente' && d['Contratti Chiusi']) || 
-                  (d.Stato === 'Analisi' && d['Analisi Firmate'])) {
-                return sum + parseFloat(String(d['Valore Tot €']).replace(/[€.]/g, '').replace(',', '.')) || 0;
-              }
-              return sum;
-            }, 0);
+  const kpiData = salesData ? (() => {
+    const allChannelsKPIs = calculateChannelKPIs(salesData);
+    const totals = allChannelsKPIs.reduce((acc, channel) => ({
+      totalOppsCreated: acc.totalOppsCreated + channel.totalOppsCreated,
+      totalClosedLostOpps: acc.totalClosedLostOpps + channel.totalClosedLostOpps,
+      totalClosedWonOpps: acc.totalClosedWonOpps + channel.totalClosedWonOpps,
+      totalClosedWonRevenue: acc.totalClosedWonRevenue + channel.totalClosedWonRevenue,
+    }), {
+      totalOppsCreated: 0,
+      totalClosedLostOpps: 0,
+      totalClosedWonOpps: 0,
+      totalClosedWonRevenue: 0,
+    });
 
-            const totalOpps = salesData.filter(d => 
-              d['Meeting Effettuato (SQL)'] && 
-              d.SQL === 'Si'
-            ).length;
+    const avgSalesCycle = allChannelsKPIs.reduce((acc, channel) => 
+      acc + (channel.closedWonAvgSalesCycle * channel.totalClosedWonOpps), 0
+    ) / Math.max(totals.totalClosedWonOpps, 1);
 
-            return `€${(totalRevenue / Math.max(1, totalOpps)).toLocaleString('it-IT', { minimumFractionDigits: 2 })}`;
-          })()
-        : "€0,00",
-      title: "Pipeline Velocity",
-    }
-  };
+    const winRate = totals.totalOppsCreated > 0 
+      ? (totals.totalClosedWonOpps / totals.totalOppsCreated) * 100 
+      : 0;
+
+    const acv = totals.totalClosedWonOpps > 0 
+      ? totals.totalClosedWonRevenue / totals.totalClosedWonOpps 
+      : 0;
+
+    const pipelineVelocity = avgSalesCycle > 0
+      ? (totals.totalOppsCreated * (winRate / 100) * acv) / (avgSalesCycle / 365)
+      : 0;
+
+    return {
+      totalOppsCreated: {
+        value: totals.totalOppsCreated,
+        title: "Total Opps. Created",
+      },
+      totalClosedLostOpps: {
+        value: totals.totalClosedLostOpps,
+        title: "Total Closed Lost Opps.",
+      },
+      totalClosedWonOpps: {
+        value: totals.totalClosedWonOpps,
+        title: "Total Closed Won Opps.",
+      },
+      totalClosedWonRevenue: {
+        value: `€${totals.totalClosedWonRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
+        title: "Total Closed Won Revenue",
+      },
+      acv: {
+        value: `€${acv.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
+        title: "ACV",
+      },
+      avgSalesCycle: {
+        value: `${Math.round(avgSalesCycle)} giorni`,
+        title: "Closed Won Avg. Sales Cycle",
+      },
+      winRate: {
+        value: `${winRate.toFixed(2)}%`,
+        title: "Win Rate",
+      },
+      pipelineVelocity: {
+        value: `€${pipelineVelocity.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
+        title: "Pipeline Velocity",
+      },
+      pipelineContribution: {
+        value: "100%",
+        title: "% of Pipeline Contribution",
+      },
+    };
+  })() : null;
 
   const handleFilterChange = (value: string) => {
     setTimeRange(value);
     toast.info(`Aggiornamento dashboard per il periodo: ${value}`);
-  };
-
-  const handleMonthChange = (month: number) => {
-    setSelectedMonth(month);
-    toast.info(`Aggiornamento dashboard per il mese: ${month}`);
   };
 
   return (
@@ -140,8 +116,7 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-4">
               <TimeRangeFilter 
-                onFilterChange={handleFilterChange} 
-                onMonthChange={handleMonthChange}
+                onFilterChange={handleFilterChange}
               />
               <button
                 onClick={handleLogout}
@@ -166,7 +141,7 @@ const Index = () => {
           </Alert>
         )}
 
-        {!error && (
+        {!error && kpiData && (
           <>
             <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {Object.values(kpiData).map((kpi, index) => (

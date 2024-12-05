@@ -3,7 +3,7 @@ export interface SalesData {
   Sales: string;
   Canale: string;
   'Meeting Fissato': string;
-  'Meeting Effettuato (SQL)': string | Date | null;
+  'Meeting Effettuato (SQL)': string;
   'Offerte Inviate': string;
   'Analisi Firmate': string;
   'Contratti Chiusi': string;
