@@ -14,6 +14,24 @@ interface SummaryTableProps {
 }
 
 export function SummaryTable({ data }: SummaryTableProps) {
+  const parseDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    const parts = dateString.split('/');
+    if (parts.length !== 3) return null;
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // I mesi in JavaScript vanno da 0 a 11
+    const year = parseInt(parts[2], 10);
+    const fullYear = year < 100 ? 2000 + year : year; // Gestione anni a due cifre
+    return new Date(fullYear, month, day);
+  };
+
+  const parseCurrency = (value: string): number => {
+    if (!value) return 0;
+    // Rimuove simboli e separatori di migliaia
+    const numberString = value.replace(/[€\s.]/g, '').replace(',', '.');
+    return parseFloat(numberString) || 0;
+  };
+
   const channelSummary = React.useMemo(() => {
     if (!data) return [];
 
@@ -35,40 +53,29 @@ export function SummaryTable({ data }: SummaryTableProps) {
         };
       }
 
+      const meetingDate = parseDate(curr.meetingCompleted);
+      const lostDate = parseDate(curr.lostDate);
+      const closingDate = parseDate(curr.contractsClosed);
+
       // Total Opps Created
-      if (
-        curr.channel === channel &&
-        curr.meetingCompleted &&
-        curr.sql === 'Sì'
-      ) {
+      if (meetingDate && curr.sql === 'Si') {
         acc[channel].totalOppsCreated += 1;
       }
 
       // Total Closed Lost Opps
-      if (
-        curr.channel === channel &&
-        curr.lostDate &&
-        curr.status === 'Perso'
-      ) {
+      if (lostDate && curr.status === 'Perso') {
         acc[channel].totalClosedLostOpps += 1;
       }
 
       // Total Closed Won Opps & Revenue
-      if (
-        curr.channel === channel &&
-        curr.contractsClosed &&
-        curr.status === 'Cliente'
-      ) {
+      if (closingDate && curr.status === 'Cliente') {
         acc[channel].totalClosedWonOpps += 1;
-        acc[channel].totalClosedWonRevenue += curr.value || 0;
+        acc[channel].totalClosedWonRevenue += parseCurrency(curr.value);
 
-        // Calculate sales cycle for won opportunities
-        if (curr.meetingCompleted) {
-          const closingDate = new Date(curr.contractsClosed);
-          const meetingDate = new Date(curr.meetingCompleted);
+        // Calcolo del ciclo di vendita per le opportunità vinte
+        if (meetingDate) {
           const salesCycleDays = Math.floor(
-            (closingDate.getTime() - meetingDate.getTime()) /
-              (1000 * 60 * 60 * 24)
+            (closingDate.getTime() - meetingDate.getTime()) / (1000 * 60 * 60 * 24)
           );
           acc[channel].totalSalesCycleDays += salesCycleDays;
         }
@@ -77,7 +84,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
       return acc;
     }, {} as Record<string, any>);
 
-    // Calculate derived metrics for each channel
+    // Calcolo dei metriche derivate per ogni canale
     const totalPipelineValue = Object.values(summary).reduce(
       (total: number, channel: any) => total + channel.totalClosedWonRevenue,
       0
@@ -97,11 +104,10 @@ export function SummaryTable({ data }: SummaryTableProps) {
           ? channel.totalClosedWonRevenue / channel.totalClosedWonOpps
           : 0;
 
-      // Pipeline Velocity calculation
+      // Calcolo della Pipeline Velocity
       const pipelineVelocity =
         avgSalesCycle > 0
-          ? (channel.totalOppsCreated * winRate * acv) /
-            (avgSalesCycle / 365)
+          ? (channel.totalOppsCreated * winRate * acv) / (avgSalesCycle / 365)
           : 0;
 
       return {
