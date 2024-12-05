@@ -121,13 +121,13 @@ export function SummaryTable({ data }: SummaryTableProps) {
   };
 
   return (
-    <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100 max-h-[calc(100vh-24rem)] overflow-hidden">
+    <div className="rounded-xl bg-white/80 backdrop-blur-lg p-6 shadow-lg border border-gray-100">
       <h3 className="mb-6 text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
         Channel Performance Summary
       </h3>
 
-      <ScrollArea className="h-full rounded-md">
-        <div className="overflow-x-auto min-w-full">
+      <ScrollArea className="h-[calc(100vh-24rem)] rounded-md">
+        <div className="min-w-full">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50/50">
@@ -165,38 +165,38 @@ export function SummaryTable({ data }: SummaryTableProps) {
                     'transition-colors duration-200'
                   )}
                 >
-                  <TableCell className="text-xs">{row.source}</TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-xs whitespace-nowrap">{row.source}</TableCell>
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     {row.totalOppsCreated}
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     {row.totalClosedLostOpps}
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     {row.totalClosedWonOpps}
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     €{row.totalClosedWonRevenue.toLocaleString('it-IT', {
                       minimumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     €{row.acv.toLocaleString('it-IT', {
                       minimumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     {Math.round(row.closedWonAvgSalesCycle)} giorni
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     {row.winRate.toFixed(2)}%
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     €{row.pipelineVelocity.toLocaleString('it-IT', {
                       minimumFractionDigits: 2,
                     })}
                   </TableCell>
-                  <TableCell className="text-right text-xs">
+                  <TableCell className="text-right text-xs whitespace-nowrap">
                     {row.pipelineContribution.toFixed(2)}%
                   </TableCell>
                 </TableRow>

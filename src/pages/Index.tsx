@@ -12,24 +12,29 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { calculateChannelKPIs } from "@/utils/salesKpiCalculations";
 import { SalesData } from "@/types/sales";
+import { Progress } from "@/components/ui/progress";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
   
   const { data: rawData, isLoading, error } = useQuery({
     queryKey: ["sales", timeRange],
-    queryFn: () => fetchSalesData(timeRange),
+    queryFn: () => fetchSalesData(timeRange, (progress, message) => {
+      setLoadingProgress(progress);
+      setLoadingMessage(message);
+    }),
     retry: false,
     meta: {
       onSuccess: () => {
-        toast.success("Data loaded successfully!");
+        toast.success("Data loaded successfully!", { duration: 2000 });
       }
     }
   });
 
-  // Map the raw data to SalesData type
   const salesData = rawData?.map((row): SalesData => ({
     ID: row[0] || '',
     Sales: row[1] || '',
@@ -59,7 +64,6 @@ const Index = () => {
     navigate("/login");
   };
 
-  // Calcola i KPI dai dati
   const kpiData = salesData ? (() => {
     const allChannelsKPIs = calculateChannelKPIs(salesData);
     const totals = allChannelsKPIs.reduce((acc, channel) => ({
@@ -132,7 +136,7 @@ const Index = () => {
 
   const handleFilterChange = (value: string) => {
     setTimeRange(value);
-    toast.info(`Updating dashboard for period: ${value}`);
+    toast.info(`Updating dashboard for period: ${value}`, { duration: 2000 });
   };
 
   const handleMonthChange = (month: number) => {
@@ -169,6 +173,13 @@ const Index = () => {
         </header>
 
         <GoogleSheetsConfig />
+
+        {isLoading && loadingProgress > 0 && (
+          <div className="mb-8 space-y-2 animate-fade-in">
+            <Progress value={loadingProgress} className="w-full h-2" />
+            <p className="text-sm text-gray-500 text-center">{loadingMessage}</p>
+          </div>
+        )}
 
         {error && (
           <Alert variant="destructive" className="mb-8">
