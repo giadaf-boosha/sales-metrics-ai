@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { SalesData } from "@/utils/googleSheets";
+import type { SalesData } from "@/types/sales";
 
 interface ChannelChartProps {
   data?: SalesData[];
@@ -19,11 +19,11 @@ export function ChannelChart({ data }: ChannelChartProps) {
     if (!data) return [];
 
     const channelStats = data.reduce((acc, curr) => {
-      const channel = curr.channel || 'Other';
+      const channel = curr.Canale || 'Other';
       if (!acc[channel]) {
         acc[channel] = { channel, value: 0, count: 0 };
       }
-      acc[channel].value += curr.value;
+      acc[channel].value += Number(curr['Valore Tot €']) || 0;
       acc[channel].count += 1;
       return acc;
     }, {} as Record<string, { channel: string; value: number; count: number }>);

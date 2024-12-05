@@ -13,6 +13,7 @@ import { SalesData, ChannelKPI } from '../types/sales';
 import { ArrowUpDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface SummaryTableProps {
   data?: any[];
@@ -197,3 +198,4 @@ export function SummaryTable({ data }: SummaryTableProps) {
     </div>
   );
 }
+

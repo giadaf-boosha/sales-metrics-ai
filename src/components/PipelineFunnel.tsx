@@ -6,7 +6,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import type { SalesData } from "@/utils/googleSheets";
+import type { SalesData } from "@/types/sales";
 
 interface PipelineFunnelProps {
   data?: SalesData[];
@@ -17,10 +17,10 @@ export function PipelineFunnel({ data }: PipelineFunnelProps) {
     if (!data) return [];
 
     const totalOpportunities = data.length;
-    const meetingsScheduled = data.filter(d => d.meetingScheduled).length;
-    const meetingsCompleted = data.filter(d => d.meetingCompleted).length;
-    const proposalsSent = data.filter(d => d.proposalSent).length;
-    const contractsClosed = data.filter(d => d.contractsClosed).length;
+    const meetingsScheduled = data.filter(d => d['Meeting Fissato'] === 'TRUE').length;
+    const meetingsCompleted = data.filter(d => d['Meeting Effettuato (SQL)'] === 'TRUE').length;
+    const proposalsSent = data.filter(d => d['Offerte Inviate'] === 'TRUE').length;
+    const contractsClosed = data.filter(d => d['Contratti Chiusi'] === 'TRUE').length;
 
     return [
       { value: totalOpportunities, name: "Total Opportunities", fill: "#6366f1" },
