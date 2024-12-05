@@ -100,7 +100,7 @@ function transformSheetData(values: any[][]): SalesData[] {
   if (!values) return [];
   
   return values.map(row => ({
-    channel: row[1] || '',
+    channel: row[1] || '',  // This maps to the "Canale" column
     meetingScheduled: row[2] || '',
     meetingCompleted: row[3] || '',
     proposalSent: row[4] || '',
