@@ -23,23 +23,32 @@ export const calculateChannelKPIs = (data: SalesData[]): ChannelKPI[] => {
 
     // Total Opps Created (Meeting effettuato + SQL = Sì)
     const totalOppsCreated = channelData.filter(row => 
+      row['Meeting Effettuato (SQL)'] && // Verifica che ci sia una data del meeting
       row.SQL === 'Si'
     ).length;
 
     // Total Closed Lost Opps
     const totalClosedLostOpps = channelData.filter(row =>
+      row.Persi && // Verifica che ci sia una data di perdita
       row.SQL === 'Si' &&
       row.Stato === 'Perso'
     ).length;
 
     // Total Closed Won Opps (Cliente + Analisi)
     const totalClosedWonOpps = 
-      channelData.filter(row => row.Stato === 'Cliente').length +
-      channelData.filter(row => row.Stato === 'Analisi').length;
+      channelData.filter(row =>
+        row.Stato === 'Cliente' &&
+        row['Contratti Chiusi'] // Verifica che ci sia una data di chiusura
+      ).length +
+      channelData.filter(row =>
+        row.Stato === 'Analisi' &&
+        row['Analisi Firmate'] // Verifica che ci sia una data di firma analisi
+      ).length;
 
     // Total Closed Won Revenue
     const totalClosedWonRevenue = channelData.reduce((sum, row) => {
-      if (row.Stato === 'Cliente' || row.Stato === 'Analisi') {
+      if ((row.Stato === 'Cliente' && row['Contratti Chiusi']) || 
+          (row.Stato === 'Analisi' && row['Analisi Firmate'])) {
         return sum + parseFloat(String(row['Valore Tot €']).replace(/[€.]/g, '').replace(',', '.')) || 0;
       }
       return sum;
@@ -85,8 +94,10 @@ export const calculateChannelKPIs = (data: SalesData[]): ChannelKPI[] => {
     };
   });
 
-  // Calcola pipeline contribution
+  // Calcola il Total Closed Won Revenue totale per il pipeline contribution
   const totalRevenue = results.reduce((sum, channel) => sum + channel.totalClosedWonRevenue, 0);
+  
+  // Aggiorna il pipeline contribution per ogni canale
   return results.map(result => ({
     ...result,
     pipelineContribution: totalRevenue > 0 ? (result.totalClosedWonRevenue / totalRevenue) * 100 : 0
