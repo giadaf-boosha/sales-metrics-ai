@@ -60,10 +60,15 @@ export function SummaryTable({ data }: SummaryTableProps) {
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
 
-    // Supponendo che la prima riga contenga i nomi delle colonne
+    // Verifica se data è un array di oggetti (già mappato)
+    if (typeof data[0] === 'object' && !Array.isArray(data[0])) {
+      return data as SalesData[];
+    }
+
+    // Altrimenti, mappiamo i dati utilizzando la prima riga come header
     const [headerRow, ...dataRows] = data;
 
-    // Verifica che headerRow sia un array di stringhe
+    // Verifica che headerRow sia un array
     if (!Array.isArray(headerRow)) {
       console.error('La prima riga dei dati non contiene i nomi delle colonne.');
       return [];
@@ -75,7 +80,7 @@ export function SummaryTable({ data }: SummaryTableProps) {
     const mapped = dataRows.map((row) => {
       const rowData: { [key: string]: any } = {};
       headers.forEach((header, index) => {
-        rowData[header] = row[index];
+        rowData[header.trim()] = row[index];
       });
       return rowData as SalesData;
     });
@@ -198,7 +203,9 @@ export function SummaryTable({ data }: SummaryTableProps) {
       {/* Visualizzazione delle prime due righe e dell'ultima riga dei dati */}
       {mappedData && mappedData.length > 0 && (
         <div className="mb-6">
-          <h4 className="text-md font-semibold">Dati letti dal Google Sheet:</h4>
+          <h4 className="text-md font-semibold">
+            Dati letti dal Google Sheet:
+          </h4>
           <pre className="bg-gray-100 p-4 rounded">
             {JSON.stringify(
               [
