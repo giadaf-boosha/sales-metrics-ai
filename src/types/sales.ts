@@ -8,16 +8,16 @@ export interface SalesData {
   'Analisi Firmate': string;
   'Contratti Chiusi': string;
   Persi: string;
+  'Nome Persona': string;
+  Azienda: string;
   SQL: string;
   Stato: string;
   Servizio: string;
-  'Valore Tot €': string | number;
-  Azienda: string;
-  'Nome Persona': string;
-  Ruolo: string;
-  Dimensioni: string;
+  'Valore Tot €': string;
   Settore: string;
   'Come mai ha accettato?': string;
+  Ruolo: string;
+  Dimensioni: string;
   Obiezioni: string;
   Note: string;
 }
@@ -33,20 +33,6 @@ export interface ChannelKPI {
   winRate: number;
   pipelineVelocity: number;
   pipelineContribution: number;
-  meetingScheduled?: string;
-  meetingCompleted?: string;
-  proposalSent?: string;
-  contractsClosed?: string;
-  status?: string;
-  service?: string;
-  company?: string;
-  personName?: string;
-  role?: string;
-  size?: string;
-  sector?: string;
-  acceptanceReason?: string;
-  objections?: string;
-  notes?: string;
 }
 
 export interface TableColumn {

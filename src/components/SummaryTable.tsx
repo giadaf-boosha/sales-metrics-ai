@@ -5,7 +5,7 @@ import {
 } from '@/components/ui/table';
 import { calculateChannelKPIs } from '../utils/salesKpiCalculations';
 import { SalesData, ChannelKPI } from '../types/sales';
-import { ScrollArea } from './ui/scroll-area';
+import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { TableHeaderComponent } from './TableHeader';
 import { TableRowComponent } from './TableRow';
 
@@ -43,16 +43,16 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
         'Analisi Firmate': row[6] || '',
         'Contratti Chiusi': row[7] || '',
         Persi: row[8] || '',
-        SQL: row[9] || '',
-        Stato: row[10] || '',
-        Servizio: row[11] || '',
-        'Valore Tot €': row[12] || '',
-        Azienda: row[13] || '',
-        'Nome Persona': row[14] || '',
-        Ruolo: row[15] || '',
-        Dimensioni: row[16] || '',
-        Settore: row[17] || '',
-        'Come mai ha accettato?': row[18] || '',
+        'Nome Persona': row[9] || '',
+        Azienda: row[10] || '',
+        SQL: row[11] || '',
+        Stato: row[12] || '',
+        Servizio: row[13] || '',
+        'Valore Tot €': row[14] || '',
+        Settore: row[15] || '',
+        'Come mai ha accettato?': row[16] || '',
+        Ruolo: row[17] || '',
+        Dimensioni: row[18] || '',
         Obiezioni: row[19] || '',
         Note: row[20] || ''
       }))
@@ -96,21 +96,7 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
       closedWonAvgSalesCycle: 0,
       winRate: 0,
       pipelineVelocity: acc.pipelineVelocity + curr.pipelineVelocity,
-      pipelineContribution: 100,
-      meetingScheduled: '-',
-      meetingCompleted: '-',
-      proposalSent: '-',
-      contractsClosed: '-',
-      status: '-',
-      service: '-',
-      company: '-',
-      personName: '-',
-      role: '-',
-      size: '-',
-      sector: '-',
-      acceptanceReason: '-',
-      objections: '-',
-      notes: '-'
+      pipelineContribution: 100
     }), {
       source: 'Total',
       totalOppsCreated: 0,
@@ -121,21 +107,7 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
       closedWonAvgSalesCycle: 0,
       winRate: 0,
       pipelineVelocity: 0,
-      pipelineContribution: 0,
-      meetingScheduled: '-',
-      meetingCompleted: '-',
-      proposalSent: '-',
-      contractsClosed: '-',
-      status: '-',
-      service: '-',
-      company: '-',
-      personName: '-',
-      role: '-',
-      size: '-',
-      sector: '-',
-      acceptanceReason: '-',
-      objections: '-',
-      notes: '-'
+      pipelineContribution: 0
     });
 
     // Calculate averages for specific metrics
@@ -167,8 +139,8 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
         Channel Performance Summary
       </h3>
 
-      <div className="relative overflow-auto">
-        <ScrollArea className="h-[calc(100vh-24rem)] w-full">
+      <div className="relative overflow-hidden">
+        <ScrollArea className="h-[calc(100vh-24rem)]">
           <div className="min-w-[1500px]">
             <Table>
               <TableHeaderComponent onSort={handleSort} />
@@ -183,6 +155,7 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
               </TableBody>
             </Table>
           </div>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
     </div>

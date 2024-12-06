@@ -15,41 +15,37 @@ const getDaysDifference = (startDate: string, endDate: string): number => {
 };
 
 export const calculateChannelKPIs = (data: SalesData[]): ChannelKPI[] => {
-  // Raggruppa i dati per canale
+  // Group data by channel
   const channels = [...new Set(data.map(row => row.Canale))];
   
   const results = channels.map(channel => {
     const channelData = data.filter(row => row.Canale === channel);
 
-    // Total Opps Created (Meeting effettuato + SQL = Sì)
+    // Total Opps Created (Meeting effettuato + SQL = Si)
     const totalOppsCreated = channelData.filter(row => 
-      row['Meeting Effettuato (SQL)'] && // Verifica che ci sia una data del meeting
+      row['Meeting Effettuato (SQL)'] && 
       row.SQL === 'Si'
     ).length;
 
     // Total Closed Lost Opps
     const totalClosedLostOpps = channelData.filter(row =>
-      row.Persi && // Verifica che ci sia una data di perdita
+      row.Persi && 
       row.SQL === 'Si' &&
       row.Stato === 'Perso'
     ).length;
 
     // Total Closed Won Opps (Cliente + Analisi)
-    const totalClosedWonOpps = 
-      channelData.filter(row =>
-        row.Stato === 'Cliente' &&
-        row['Contratti Chiusi'] // Verifica che ci sia una data di chiusura
-      ).length +
-      channelData.filter(row =>
-        row.Stato === 'Analisi' &&
-        row['Analisi Firmate'] // Verifica che ci sia una data di firma analisi
-      ).length;
+    const totalClosedWonOpps = channelData.filter(row =>
+      (row.Stato === 'Cliente' && row['Contratti Chiusi']) || 
+      (row.Stato === 'Analisi' && row['Analisi Firmate'])
+    ).length;
 
     // Total Closed Won Revenue
     const totalClosedWonRevenue = channelData.reduce((sum, row) => {
       if ((row.Stato === 'Cliente' && row['Contratti Chiusi']) || 
           (row.Stato === 'Analisi' && row['Analisi Firmate'])) {
-        return sum + parseFloat(String(row['Valore Tot €']).replace(/[€.]/g, '').replace(',', '.')) || 0;
+        const value = row['Valore Tot €'].replace(/[€.]/g, '').replace(',', '.');
+        return sum + (parseFloat(value) || 0);
       }
       return sum;
     }, 0);
@@ -67,7 +63,7 @@ export const calculateChannelKPIs = (data: SalesData[]): ChannelKPI[] => {
     const avgSalesCycle = wonDeals.length > 0
       ? wonDeals.reduce((sum, row) => {
           const endDate = row.Stato === 'Cliente' ? row['Contratti Chiusi'] : row['Analisi Firmate'];
-          return sum + getDaysDifference(row['Meeting Effettuato (SQL)'] as string, endDate);
+          return sum + getDaysDifference(row['Meeting Effettuato (SQL)'], endDate);
         }, 0) / wonDeals.length
       : 0;
 
@@ -90,14 +86,14 @@ export const calculateChannelKPIs = (data: SalesData[]): ChannelKPI[] => {
       closedWonAvgSalesCycle: avgSalesCycle,
       winRate,
       pipelineVelocity,
-      pipelineContribution: 0, // Sarà calcolato dopo
+      pipelineContribution: 0, // Will be calculated after
     };
   });
 
-  // Calcola il Total Closed Won Revenue totale per il pipeline contribution
+  // Calculate Total Revenue for pipeline contribution
   const totalRevenue = results.reduce((sum, channel) => sum + channel.totalClosedWonRevenue, 0);
   
-  // Aggiorna il pipeline contribution per ogni canale
+  // Update pipeline contribution for each channel
   return results.map(result => ({
     ...result,
     pipelineContribution: totalRevenue > 0 ? (result.totalClosedWonRevenue / totalRevenue) * 100 : 0
