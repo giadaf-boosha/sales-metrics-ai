@@ -11,7 +11,7 @@ export const SalesDataPreview: React.FC<SalesDataPreviewProps> = ({ data }) => {
   // Map the raw data to our expected format
   const mappedData: SalesData[] = data.map(row => ({
     ID: row[0] || '',
-    Sales: row[1] || '',
+    'Nome Persona': row[1] || '',
     Canale: row[2] || '',
     'Meeting Fissato': row[3] || '',
     'Meeting Effettuato (SQL)': row[4] || '',
@@ -19,7 +19,7 @@ export const SalesDataPreview: React.FC<SalesDataPreviewProps> = ({ data }) => {
     'Analisi Firmate': row[6] || '',
     'Contratti Chiusi': row[7] || '',
     Persi: row[8] || '',
-    'Nome Persona': row[9] || '',
+    Sales: row[9] || '',
     Azienda: row[10] || '',
     SQL: row[11] || '',
     Stato: row[12] || '',

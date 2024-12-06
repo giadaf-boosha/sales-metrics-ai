@@ -1,6 +1,6 @@
 export interface SalesData {
   ID: string;
-  Sales: string;
+  'Nome Persona': string;
   Canale: string;
   'Meeting Fissato': string;
   'Meeting Effettuato (SQL)': string;
@@ -8,7 +8,7 @@ export interface SalesData {
   'Analisi Firmate': string;
   'Contratti Chiusi': string;
   Persi: string;
-  'Nome Persona': string;
+  Sales: string;
   Azienda: string;
   SQL: string;
   Stato: string;

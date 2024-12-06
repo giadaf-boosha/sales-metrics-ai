@@ -35,7 +35,7 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
     return data
       .map((row): SalesData => ({
         ID: row[0] || '',
-        Sales: row[1] || '',
+        'Nome Persona': row[1] || '',
         Canale: row[2] || '',
         'Meeting Fissato': row[3] || '',
         'Meeting Effettuato (SQL)': row[4] || '',
@@ -43,7 +43,7 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
         'Analisi Firmate': row[6] || '',
         'Contratti Chiusi': row[7] || '',
         Persi: row[8] || '',
-        'Nome Persona': row[9] || '',
+        Sales: row[9] || '',
         Azienda: row[10] || '',
         SQL: row[11] || '',
         Stato: row[12] || '',
