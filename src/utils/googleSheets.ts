@@ -14,7 +14,7 @@ const PROGRESS_EVENTS = {
 
 export type ProgressCallback = (progress: number, message: string) => void;
 
-export async function fetchSalesData(range: string, onProgress?: ProgressCallback): Promise<any[]> {
+export async function fetchSalesData(range: number, onProgress?: ProgressCallback): Promise<any[]> {
   try {
     onProgress?.(PROGRESS_EVENTS.FETCH_CONFIG.step * 20, PROGRESS_EVENTS.FETCH_CONFIG.message);
 
