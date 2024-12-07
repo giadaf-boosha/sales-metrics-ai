@@ -51,28 +51,24 @@ const isSQL = (value: string): boolean => {
 };
 
 export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): ChannelKPI[] => {
-  console.log('Starting KPI calculation with currentMonth:', currentMonth);
-  
   if (!data?.length || !currentMonth) {
     console.warn('Missing data or currentMonth in calculateChannelKPIs');
     return [];
   }
 
   const channels = [...new Set(data.map(row => row.Canale))];
-  console.log('Found channels:', channels);
   
   const results = channels.map(channel => {
-    console.log('Processing channel:', channel);
     const channelData = data.filter(row => row.Canale === channel);
 
-    // Total Opps Created (SQL = Si nel mese corrente)
+    // Total Opps Created (Meeting Effettuato + SQL = Si nel mese corrente)
     const totalOppsCreated = channelData.filter(row => {
       const sqlMatch = isSQL(row.SQL);
       const meetingMonth = getMonthFromDate(row['Meeting Effettuato (SQL)']);
       return sqlMatch && meetingMonth === currentMonth;
     }).length;
 
-    // Total Closed Lost Opps
+    // Total Closed Lost Opps (Persi nel mese corrente + SQL = Si)
     const totalClosedLostOpps = channelData.filter(row => {
       const sqlMatch = isSQL(row.SQL);
       const isPerso = matchesState(row.Stato, 'Perso');
@@ -80,7 +76,7 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
       return sqlMatch && isPerso && persiMonth === currentMonth;
     }).length;
 
-    // Total Closed Won Opps
+    // Total Closed Won Opps (Cliente o Analisi nel mese corrente)
     const closedAsClient = channelData.filter(row => {
       const isClient = matchesState(row.Stato, 'Cliente');
       const closedMonth = getMonthFromDate(row['Contratti Chiusi']);
@@ -95,19 +91,19 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
 
     const totalClosedWonOpps = closedAsClient + closedAsAnalysis;
 
-    // Total Closed Won Revenue
+    // Total Closed Won Revenue (somma dei valori per Cliente e Analisi nel mese)
     const totalClosedWonRevenue = channelData.reduce((sum, row) => {
-      let revenue = sum;
+      const value = parseEuroValue(row['Valore Tot €']);
       if (matchesState(row.Stato, 'Cliente') && getMonthFromDate(row['Contratti Chiusi']) === currentMonth) {
-        revenue += parseEuroValue(row['Valore Tot €']);
+        return sum + value;
       }
       if (matchesState(row.Stato, 'Analisi') && getMonthFromDate(row['Analisi Firmate']) === currentMonth) {
-        revenue += parseEuroValue(row['Valore Tot €']);
+        return sum + value;
       }
-      return revenue;
+      return sum;
     }, 0);
 
-    // ACV (Average Contract Value)
+    // ACV (Average Contract Value) = Total Revenue / Total Won Opps
     const acv = totalClosedWonOpps > 0 ? totalClosedWonRevenue / totalClosedWonOpps : 0;
 
     // Closed Won Average Sales Cycle
@@ -115,7 +111,10 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
       const isWon = matchesState(row.Stato, 'Cliente') || matchesState(row.Stato, 'Analisi');
       const hasValidDates = row['Meeting Effettuato (SQL)'] && 
         (matchesState(row.Stato, 'Cliente') ? row['Contratti Chiusi'] : row['Analisi Firmate']);
-      return isWon && hasValidDates;
+      const closedInMonth = matchesState(row.Stato, 'Cliente') 
+        ? getMonthFromDate(row['Contratti Chiusi']) === currentMonth
+        : getMonthFromDate(row['Analisi Firmate']) === currentMonth;
+      return isWon && hasValidDates && closedInMonth;
     });
 
     const avgSalesCycle = wonDeals.length > 0
@@ -127,16 +126,17 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
         }, 0) / wonDeals.length
       : 0;
 
-    // Win Rate
-    const totalOpps = totalClosedWonOpps + totalClosedLostOpps;
-    const winRate = totalOpps > 0 ? (totalClosedWonOpps / totalOpps) * 100 : 0;
+    // Win Rate = Won / (Won + Lost)
+    const winRate = totalClosedWonOpps > 0 
+      ? (totalClosedWonOpps / (totalClosedWonOpps + totalClosedLostOpps)) * 100 
+      : 0;
 
-    // Pipeline Velocity
+    // Pipeline Velocity = (Total Opps * Win Rate * ACV) / (Avg Sales Cycle / 365)
     const pipelineVelocity = avgSalesCycle > 0
       ? (totalOppsCreated * (winRate / 100) * acv) / (avgSalesCycle / 365)
       : 0;
 
-    const result = {
+    const result: ChannelKPI = {
       source: channel,
       totalOppsCreated,
       totalClosedLostOpps,
@@ -146,20 +146,8 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
       closedWonAvgSalesCycle: avgSalesCycle,
       winRate,
       pipelineVelocity,
-      pipelineContribution: 0,
+      pipelineContribution: 0, // Calcolato dopo
     };
-
-    console.log('Channel results:', {
-      channel,
-      totalOppsCreated,
-      totalClosedLostOpps,
-      totalClosedWonOpps,
-      totalClosedWonRevenue,
-      acv,
-      avgSalesCycle,
-      winRate,
-      pipelineVelocity
-    });
 
     return result;
   }).filter(result => result.source);
