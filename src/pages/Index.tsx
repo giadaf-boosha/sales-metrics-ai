@@ -135,10 +135,20 @@ const Index = () => {
 
         {!error && salesData && (
           <>
-            <KPISection 
-              salesData={salesData} 
-              currentMonth={currentMonth}
-            />
+            <div className="mt-8">
+              <MainKPISection 
+                salesData={salesData}
+                currentMonth={currentMonth}
+              />
+            </div>
+
+            <div className="mt-8">
+              <DealFunnel
+                salesData={salesData}
+                currentMonth={currentMonth}
+              />
+            </div>
+
             <div className="mt-8">
               <SummaryTable 
                 data={rawData} 
@@ -146,24 +156,11 @@ const Index = () => {
               />
             </div>
 
-            <div className="mt-12">
-              <MainKPISection 
+            <div className="mt-8">
+              <ChannelProductPerformance
                 salesData={salesData}
                 currentMonth={currentMonth}
               />
-            </div>
-
-            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DealFunnel
-                salesData={salesData}
-                currentMonth={currentMonth}
-              />
-              <div className="space-y-6">
-                <ChannelProductPerformance
-                  salesData={salesData}
-                  currentMonth={currentMonth}
-                />
-              </div>
             </div>
           </>
         )}
