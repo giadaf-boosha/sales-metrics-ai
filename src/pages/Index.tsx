@@ -1,6 +1,7 @@
 import { TimeRangeFilter } from "@/components/TimeRangeFilter";
 import { GoogleSheetsConfig } from "@/components/GoogleSheetsConfig";
 import { SummaryTable } from "@/components/SummaryTable";
+import { SalesPerformance } from "@/components/SalesPerformance";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSalesData } from "@/utils/googleSheets";
@@ -156,8 +157,12 @@ const Index = () => {
               />
             </div>
 
-            <div className="mt-8">
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
               <ChannelProductPerformance
+                salesData={salesData}
+                currentMonth={currentMonth}
+              />
+              <SalesPerformance
                 salesData={salesData}
                 currentMonth={currentMonth}
               />

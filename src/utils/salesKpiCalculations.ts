@@ -1,4 +1,5 @@
 import { SalesData, ChannelKPI } from '../types/sales';
+import { getMonthFromDate, parseMonetaryValue } from './dateUtils';
 
 const getMonthFromDate = (dateStr: string): number => {
   if (!dateStr || typeof dateStr !== 'string') return 0;
@@ -18,7 +19,6 @@ const getMonthFromDate = (dateStr: string): number => {
 const parseMonetaryValue = (value: string): number => {
   if (!value) return 0;
   try {
-    // Rimuove il simbolo € e le virgole, converte in numero
     return parseFloat(value.replace('€', '').replace('.', '').replace(',', '.').trim());
   } catch (error) {
     console.error('Error parsing monetary value:', value);
@@ -45,20 +45,17 @@ const getDaysBetweenDates = (startDate: string, endDate: string): number => {
 };
 
 export const calculateTotalKPIs = (data: SalesData[], currentMonth: number): ChannelKPI => {
-  // Total Opps Created (SQL = 'Si' per il mese corrente)
   const totalOppsCreated = data.filter(row => 
     getMonthFromDate(row['Meeting Effettuato (SQL)']) === currentMonth && 
     row.SQL === 'Si'
   ).length;
   
-  // Total Closed Lost Opps
   const totalClosedLostOpps = data.filter(row => 
     getMonthFromDate(row.Persi) === currentMonth && 
     row.SQL === 'Si' && 
     row.Stato === 'Perso'
   ).length;
   
-  // Total Closed Won Opps (somma di Cliente e Analisi)
   const clienteOpps = data.filter(row => 
     row.Stato === 'Cliente' && 
     getMonthFromDate(row['Contratti Chiusi']) === currentMonth
@@ -71,7 +68,6 @@ export const calculateTotalKPIs = (data: SalesData[], currentMonth: number): Cha
   
   const totalClosedWonOpps = clienteOpps + analisiOpps;
   
-  // Total Closed Won Revenue
   const totalClosedWonRevenue = data.reduce((sum, row) => {
     const isRelevantMonth = 
       (row.Stato === 'Cliente' && getMonthFromDate(row['Contratti Chiusi']) === currentMonth) ||
@@ -83,10 +79,8 @@ export const calculateTotalKPIs = (data: SalesData[], currentMonth: number): Cha
     return sum;
   }, 0);
   
-  // ACV (Average Contract Value)
   const acv = totalClosedWonOpps > 0 ? totalClosedWonRevenue / totalClosedWonOpps : 0;
   
-  // Closed Won Avg Sales Cycle
   const wonDeals = data.filter(row => 
     (row.Stato === 'Cliente' && getMonthFromDate(row['Contratti Chiusi']) === currentMonth) ||
     (row.Stato === 'Analisi' && getMonthFromDate(row['Analisi Firmate']) === currentMonth)
@@ -99,11 +93,9 @@ export const calculateTotalKPIs = (data: SalesData[], currentMonth: number): Cha
   
   const closedWonAvgSalesCycle = wonDeals.length > 0 ? totalCycleDays / wonDeals.length : 0;
   
-  // Win Rate
   const winRate = (totalClosedWonOpps + totalClosedLostOpps) > 0 ? 
     (totalClosedWonOpps / (totalClosedWonOpps + totalClosedLostOpps)) * 100 : 0;
   
-  // Pipeline Velocity
   const pipelineVelocity = closedWonAvgSalesCycle > 0 ?
     (totalOppsCreated * (winRate / 100) * acv) / (closedWonAvgSalesCycle / 365) : 0;
 
@@ -127,20 +119,17 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
   const channelKPIs = channels.map(channel => {
     const channelData = data.filter(row => row.Canale === channel);
     
-    // Total Opps Created (SQL = 'Si' per il mese corrente)
     const totalOppsCreated = channelData.filter(row => 
       getMonthFromDate(row['Meeting Effettuato (SQL)']) === currentMonth && 
       row.SQL === 'Si'
     ).length;
     
-    // Total Closed Lost Opps
     const totalClosedLostOpps = channelData.filter(row => 
       getMonthFromDate(row.Persi) === currentMonth && 
       row.SQL === 'Si' && 
       row.Stato === 'Perso'
     ).length;
     
-    // Total Closed Won Opps (somma di Cliente e Analisi)
     const clienteOpps = channelData.filter(row => 
       row.Stato === 'Cliente' && 
       getMonthFromDate(row['Contratti Chiusi']) === currentMonth
@@ -153,7 +142,6 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
     
     const totalClosedWonOpps = clienteOpps + analisiOpps;
     
-    // Total Closed Won Revenue
     const totalClosedWonRevenue = channelData.reduce((sum, row) => {
       const isRelevantMonth = 
         (row.Stato === 'Cliente' && getMonthFromDate(row['Contratti Chiusi']) === currentMonth) ||
@@ -165,10 +153,8 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
       return sum;
     }, 0);
     
-    // ACV
     const acv = totalClosedWonOpps > 0 ? totalClosedWonRevenue / totalClosedWonOpps : 0;
     
-    // Closed Won Avg Sales Cycle
     const wonDeals = channelData.filter(row => 
       (row.Stato === 'Cliente' && getMonthFromDate(row['Contratti Chiusi']) === currentMonth) ||
       (row.Stato === 'Analisi' && getMonthFromDate(row['Analisi Firmate']) === currentMonth)
@@ -181,11 +167,9 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
     
     const closedWonAvgSalesCycle = wonDeals.length > 0 ? totalCycleDays / wonDeals.length : 0;
     
-    // Win Rate
     const winRate = (totalClosedWonOpps + totalClosedLostOpps) > 0 ? 
       (totalClosedWonOpps / (totalClosedWonOpps + totalClosedLostOpps)) * 100 : 0;
     
-    // Pipeline Velocity
     const pipelineVelocity = closedWonAvgSalesCycle > 0 ?
       (totalOppsCreated * (winRate / 100) * acv) / (closedWonAvgSalesCycle / 365) : 0;
 
@@ -199,16 +183,77 @@ export const calculateChannelKPIs = (data: SalesData[], currentMonth: number): C
       closedWonAvgSalesCycle,
       winRate,
       pipelineVelocity,
-      pipelineContribution: 0 // Verrà calcolato dopo
+      pipelineContribution: 0
     };
   });
 
-  // Calcola il totale del revenue per il pipeline contribution
   const totalRevenue = channelKPIs.reduce((sum, kpi) => sum + kpi.totalClosedWonRevenue, 0);
   
-  // Aggiorna il pipeline contribution per ogni canale
   return channelKPIs.map(kpi => ({
     ...kpi,
     pipelineContribution: totalRevenue > 0 ? (kpi.totalClosedWonRevenue / totalRevenue) * 100 : 0
   }));
+};
+
+interface SalesKPI {
+  salesPerson: string;
+  totalOppsCreated: number;
+  totalClosedLostOpps: number;
+  totalClosedWonOpps: number;
+  totalClosedWonRevenue: number;
+  winRate: number;
+}
+
+export const calculateSalesKPIs = (data: SalesData[], currentMonth: number): SalesKPI[] => {
+  const salesPeople = Array.from(new Set(data.map(row => row.Sales))).filter(Boolean);
+  
+  return salesPeople.map(salesPerson => {
+    const salesData = data.filter(row => row.Sales === salesPerson);
+    
+    const totalOppsCreated = salesData.filter(row => 
+      getMonthFromDate(row['Meeting Effettuato (SQL)']) === currentMonth && 
+      row.SQL === 'Si'
+    ).length;
+    
+    const totalClosedLostOpps = salesData.filter(row => 
+      getMonthFromDate(row.Persi) === currentMonth && 
+      row.SQL === 'Si' && 
+      row.Stato === 'Perso'
+    ).length;
+    
+    const clienteOpps = salesData.filter(row => 
+      row.Stato === 'Cliente' && 
+      getMonthFromDate(row['Contratti Chiusi']) === currentMonth
+    ).length;
+    
+    const analisiOpps = salesData.filter(row => 
+      row.Stato === 'Analisi' && 
+      getMonthFromDate(row['Analisi Firmate']) === currentMonth
+    ).length;
+    
+    const totalClosedWonOpps = clienteOpps + analisiOpps;
+    
+    const totalClosedWonRevenue = salesData.reduce((sum, row) => {
+      const isRelevantMonth = 
+        (row.Stato === 'Cliente' && getMonthFromDate(row['Contratti Chiusi']) === currentMonth) ||
+        (row.Stato === 'Analisi' && getMonthFromDate(row['Analisi Firmate']) === currentMonth);
+      
+      if (isRelevantMonth && row['Valore Tot €']) {
+        return sum + parseMonetaryValue(row['Valore Tot €']);
+      }
+      return sum;
+    }, 0);
+    
+    const winRate = (totalClosedWonOpps + totalClosedLostOpps) > 0 ? 
+      (totalClosedWonOpps / (totalClosedWonOpps + totalClosedLostOpps)) * 100 : 0;
+
+    return {
+      salesPerson,
+      totalOppsCreated,
+      totalClosedLostOpps,
+      totalClosedWonOpps,
+      totalClosedWonRevenue,
+      winRate
+    };
+  });
 };
