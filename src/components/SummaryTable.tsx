@@ -76,7 +76,6 @@ export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
         const offerDateMonth = getMonthFromDate(row['Offerte Inviate']);
         const analysiDateMonth = getMonthFromDate(row['Analisi Firmate']);
         
-        // Una riga è valida se almeno una delle date corrisponde al mese selezionato
         return meetingDateMonth === currentMonth || 
                contractDateMonth === currentMonth ||
                offerDateMonth === currentMonth ||
@@ -87,7 +86,7 @@ export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
   const channelSummary = React.useMemo(() => {
     if (!mappedData.length) return [];
 
-    let summary = calculateChannelKPIs(mappedData);
+    let summary = calculateChannelKPIs(mappedData, currentMonth);
 
     if (sortConfig) {
       summary.sort((a, b) => {
@@ -127,7 +126,7 @@ export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
       pipelineContribution: 0
     });
 
-    // Calculate averages for specific metrics
+    // Calculate averages and rates for totals
     totals.acv = totals.totalClosedWonOpps > 0 
       ? totals.totalClosedWonRevenue / totals.totalClosedWonOpps 
       : 0;
@@ -140,8 +139,24 @@ export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
       acc + (curr.closedWonAvgSalesCycle * curr.totalClosedWonOpps), 0
     ) / Math.max(totals.totalClosedWonOpps, 1);
 
+    // Format numbers for display
+    summary = summary.map(row => ({
+      ...row,
+      totalClosedWonRevenue: Number(row.totalClosedWonRevenue.toFixed(2)),
+      acv: Number(row.acv.toFixed(2)),
+      winRate: Number(row.winRate.toFixed(2)),
+      pipelineVelocity: Number(row.pipelineVelocity.toFixed(2)),
+      pipelineContribution: Number(row.pipelineContribution.toFixed(2))
+    }));
+
+    totals.totalClosedWonRevenue = Number(totals.totalClosedWonRevenue.toFixed(2));
+    totals.acv = Number(totals.acv.toFixed(2));
+    totals.winRate = Number(totals.winRate.toFixed(2));
+    totals.pipelineVelocity = Number(totals.pipelineVelocity.toFixed(2));
+    totals.pipelineContribution = Number(totals.pipelineContribution.toFixed(2));
+
     return [...summary, totals];
-  }, [mappedData, sortConfig]);
+  }, [mappedData, sortConfig, currentMonth]);
 
   const handleSort = (key: keyof ChannelKPI) => {
     setSortConfig(current => ({

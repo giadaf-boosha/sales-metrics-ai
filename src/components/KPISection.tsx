@@ -22,6 +22,14 @@ const getMonthFromDate = (dateStr: string): number => {
   }
 };
 
+const formatCurrency = (value: number): string => {
+  return `€${value.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const formatPercentage = (value: number): string => {
+  return `${value.toFixed(2)}%`;
+};
+
 export function KPISection({ salesData, currentMonth }: KPISectionProps) {
   const filteredData = React.useMemo(() => {
     if (!salesData) return undefined;
@@ -29,9 +37,7 @@ export function KPISection({ salesData, currentMonth }: KPISectionProps) {
   }, [salesData]);
 
   const kpiData = filteredData ? (() => {
-    console.log('Calculating KPIs with currentMonth:', currentMonth);
     const allChannelsKPIs = calculateChannelKPIs(filteredData, currentMonth);
-    console.log('Calculated KPIs:', allChannelsKPIs);
     
     const totals = allChannelsKPIs.reduce((acc, channel) => ({
       totalOppsCreated: acc.totalOppsCreated + channel.totalOppsCreated,
@@ -63,23 +69,23 @@ export function KPISection({ salesData, currentMonth }: KPISectionProps) {
 
     return {
       totalOppsCreated: {
-        value: totals.totalOppsCreated,
+        value: totals.totalOppsCreated.toString(),
         title: "Total Opps. Created",
       },
       totalClosedLostOpps: {
-        value: totals.totalClosedLostOpps,
+        value: totals.totalClosedLostOpps.toString(),
         title: "Total Closed Lost Opps.",
       },
       totalClosedWonOpps: {
-        value: totals.totalClosedWonOpps,
+        value: totals.totalClosedWonOpps.toString(),
         title: "Total Closed Won Opps.",
       },
       totalClosedWonRevenue: {
-        value: `€${totals.totalClosedWonRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
+        value: formatCurrency(totals.totalClosedWonRevenue),
         title: "Total Closed Won Revenue",
       },
       acv: {
-        value: `€${acv.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
+        value: formatCurrency(acv),
         title: "ACV",
       },
       avgSalesCycle: {
@@ -87,11 +93,11 @@ export function KPISection({ salesData, currentMonth }: KPISectionProps) {
         title: "Closed Won Avg. Sales Cycle",
       },
       winRate: {
-        value: `${winRate.toFixed(2)}%`,
+        value: formatPercentage(winRate),
         title: "Win Rate",
       },
       pipelineVelocity: {
-        value: `€${pipelineVelocity.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
+        value: formatCurrency(pipelineVelocity),
         title: "Pipeline Velocity",
       },
       pipelineContribution: {

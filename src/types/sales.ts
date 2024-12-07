@@ -39,3 +39,11 @@ export interface TableColumn {
   key: keyof ChannelKPI;
   label: string;
 }
+
+export interface FormattedChannelKPI extends ChannelKPI {
+  formattedTotalClosedWonRevenue: string;
+  formattedACV: string;
+  formattedWinRate: string;
+  formattedPipelineVelocity: string;
+  formattedPipelineContribution: string;
+}
