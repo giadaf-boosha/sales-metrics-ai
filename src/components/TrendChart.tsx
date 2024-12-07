@@ -1,97 +1,58 @@
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import type { SalesData } from "@/utils/googleSheets";
+import React from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface TrendChartProps {
-  data?: SalesData[];
-  isLoading?: boolean;
+  data: Array<{ month: string; value: number }>;
 }
 
-export function TrendChart({ data, isLoading }: TrendChartProps) {
-  if (isLoading) {
-    return (
-      <div className="h-[400px] w-full rounded-xl bg-white p-6 shadow-sm animate-pulse">
-        <div className="h-full w-full bg-gray-100 rounded-lg" />
-      </div>
-    );
-  }
-
+export function TrendChart({ data }: TrendChartProps) {
   return (
-    <div className="h-[400px] w-full rounded-xl bg-white p-6 shadow-sm animate-fade-in">
-      <h3 className="mb-6 text-lg font-semibold">Revenue & Opportunities Trend</h3>
+    <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
+        <LineChart
           data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
         >
-          <defs>
-            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
-              <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-            </linearGradient>
-            <linearGradient id="opportunitiesGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#22c55e" stopOpacity={0.1} />
-              <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
             dataKey="month"
-            stroke="#94a3b8"
+            stroke="#6b7280"
             fontSize={12}
             tickLine={false}
-            axisLine={false}
           />
           <YAxis
-            yAxisId="revenue"
-            stroke="#94a3b8"
-            fontSize={12}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(value) => `$${value/1000}k`}
-          />
-          <YAxis
-            yAxisId="opportunities"
-            orientation="right"
-            stroke="#94a3b8"
+            stroke="#6b7280"
             fontSize={12}
             tickLine={false}
             axisLine={false}
           />
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <Tooltip
             contentStyle={{
-              backgroundColor: "white",
-              border: "none",
-              borderRadius: "8px",
-              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+              backgroundColor: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '0.375rem',
+              fontSize: '0.875rem'
             }}
           />
-          <Area
-            yAxisId="revenue"
+          <Line
             type="monotone"
-            dataKey="revenue"
-            stroke="#6366f1"
+            dataKey="value"
+            stroke="#3b82f6"
             strokeWidth={2}
-            fillOpacity={1}
-            fill="url(#revenueGradient)"
+            dot={{
+              stroke: '#3b82f6',
+              strokeWidth: 2,
+              r: 4,
+              fill: 'white'
+            }}
+            activeDot={{
+              stroke: '#3b82f6',
+              strokeWidth: 2,
+              r: 6,
+              fill: 'white'
+            }}
           />
-          <Area
-            yAxisId="opportunities"
-            type="monotone"
-            dataKey="opportunities"
-            stroke="#22c55e"
-            strokeWidth={2}
-            fillOpacity={1}
-            fill="url(#opportunitiesGradient)"
-          />
-        </AreaChart>
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );

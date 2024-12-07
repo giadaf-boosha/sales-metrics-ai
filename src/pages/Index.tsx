@@ -12,6 +12,9 @@ import { AlertCircle } from "lucide-react";
 import { SalesData } from "@/types/sales";
 import { Progress } from "@/components/ui/progress";
 import { KPISection } from "@/components/KPISection";
+import { MainKPISection } from "@/components/MainKPISection";
+import { DealFunnel } from "@/components/DealFunnel";
+import { ChannelProductPerformance } from "@/components/ChannelProductPerformance";
 
 const Index = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
@@ -141,6 +144,26 @@ const Index = () => {
                 data={rawData} 
                 currentMonth={currentMonth}
               />
+            </div>
+
+            <div className="mt-12">
+              <MainKPISection 
+                salesData={salesData}
+                currentMonth={currentMonth}
+              />
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <DealFunnel
+                salesData={salesData}
+                currentMonth={currentMonth}
+              />
+              <div className="space-y-6">
+                <ChannelProductPerformance
+                  salesData={salesData}
+                  currentMonth={currentMonth}
+                />
+              </div>
             </div>
           </>
         )}
