@@ -23,7 +23,7 @@ const Index = () => {
   const navigate = useNavigate();
   
   const { data: rawData, isLoading, error } = useQuery({
-    queryKey: ["sales", currentMonth],
+    queryKey: ["sales", currentMonth.toString()],
     queryFn: () => fetchSalesData(currentMonth, (progress, message) => {
       setLoadingProgress(progress);
       setLoadingMessage(message);
