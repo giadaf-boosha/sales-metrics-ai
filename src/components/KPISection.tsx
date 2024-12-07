@@ -14,12 +14,8 @@ const getMonthFromDate = (dateStr: string): number => {
   if (!cleanDate) return 0;
   
   try {
-    const [day, month] = cleanDate.split('/');
-    const monthNum = parseInt(month, 10);
-    if (monthNum >= 1 && monthNum <= 12) {
-      return monthNum;
-    }
-    return 0;
+    const [_, month] = cleanDate.split('/').map(Number);
+    return month >= 1 && month <= 12 ? month : 0;
   } catch (error) {
     console.error('Error parsing date:', dateStr);
     return 0;
@@ -29,23 +25,14 @@ const getMonthFromDate = (dateStr: string): number => {
 export function KPISection({ salesData, currentMonth }: KPISectionProps) {
   const filteredData = React.useMemo(() => {
     if (!salesData) return undefined;
-    
-    return salesData.filter(row => {
-      const meetingDateMonth = getMonthFromDate(row['Meeting Fissato']);
-      const contractDateMonth = getMonthFromDate(row['Contratti Chiusi']);
-      const offerDateMonth = getMonthFromDate(row['Offerte Inviate']);
-      const analysiDateMonth = getMonthFromDate(row['Analisi Firmate']);
-      
-      // Una riga è valida se almeno una delle date corrisponde al mese selezionato
-      return meetingDateMonth === currentMonth || 
-             contractDateMonth === currentMonth ||
-             offerDateMonth === currentMonth ||
-             analysiDateMonth === currentMonth;
-    });
-  }, [salesData, currentMonth]);
+    return salesData;
+  }, [salesData]);
 
   const kpiData = filteredData ? (() => {
-    const allChannelsKPIs = calculateChannelKPIs(filteredData);
+    console.log('Calculating KPIs with currentMonth:', currentMonth);
+    const allChannelsKPIs = calculateChannelKPIs(filteredData, currentMonth);
+    console.log('Calculated KPIs:', allChannelsKPIs);
+    
     const totals = allChannelsKPIs.reduce((acc, channel) => ({
       totalOppsCreated: acc.totalOppsCreated + channel.totalOppsCreated,
       totalClosedLostOpps: acc.totalClosedLostOpps + channel.totalClosedLostOpps,
