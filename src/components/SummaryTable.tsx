@@ -40,48 +40,33 @@ const getMonthFromDate = (dateStr: string): number => {
   }
 };
 
-export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
-
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
     
-    return data
-      .map((row): SalesData => ({
-        ID: row[0] || '',
-        'Nome Persona': row[1] || '',
-        Canale: row[2] || '',
-        'Meeting Fissato': row[3] || '',
-        'Meeting Effettuato (SQL)': row[4] || '',
-        'Offerte Inviate': row[5] || '',
-        'Analisi Firmate': row[6] || '',
-        'Contratti Chiusi': row[7] || '',
-        Persi: row[8] || '',
-        Sales: row[9] || '',
-        Azienda: row[10] || '',
-        SQL: row[11] || '',
-        Stato: row[12] || '',
-        Servizio: row[13] || '',
-        'Valore Tot €': row[14] || '',
-        Settore: row[15] || '',
-        'Come mai ha accettato?': row[16] || '',
-        Ruolo: row[17] || '',
-        Dimensioni: row[18] || '',
-        Obiezioni: row[19] || '',
-        Note: row[20] || ''
-      }))
-      .filter(row => {
-        const meetingDateMonth = getMonthFromDate(row['Meeting Fissato']);
-        const contractDateMonth = getMonthFromDate(row['Contratti Chiusi']);
-        const offerDateMonth = getMonthFromDate(row['Offerte Inviate']);
-        const analysiDateMonth = getMonthFromDate(row['Analisi Firmate']);
-        
-        return meetingDateMonth === currentMonth || 
-               contractDateMonth === currentMonth ||
-               offerDateMonth === currentMonth ||
-               analysiDateMonth === currentMonth;
-      });
-  }, [data, currentMonth]);
+    return data.map((row): SalesData => ({
+      ID: row[0] || '',
+      'Nome Persona': row[1] || '',
+      Canale: row[2] || '',
+      'Meeting Fissato': row[3] || '',
+      'Meeting Effettuato (SQL)': row[4] || '',
+      'Offerte Inviate': row[5] || '',
+      'Analisi Firmate': row[6] || '',
+      'Contratti Chiusi': row[7] || '',
+      Persi: row[8] || '',
+      Sales: row[9] || '',
+      Azienda: row[10] || '',
+      SQL: row[11] || '',
+      Stato: row[12] || '',
+      Servizio: row[13] || '',
+      'Valore Tot €': row[14] || '',
+      Settore: row[15] || '',
+      'Come mai ha accettato?': row[16] || '',
+      Ruolo: row[17] || '',
+      Dimensioni: row[18] || '',
+      Obiezioni: row[19] || '',
+      Note: row[20] || ''
+    }));
+  }, [data]);
 
   const channelSummary = React.useMemo(() => {
     if (!mappedData.length) return [];
@@ -111,7 +96,7 @@ export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
       acv: 0,
       closedWonAvgSalesCycle: 0,
       winRate: 0,
-      pipelineVelocity: acc.pipelineVelocity + curr.pipelineVelocity,
+      pipelineVelocity: 0,
       pipelineContribution: 100
     }), {
       source: 'Total',
@@ -125,29 +110,6 @@ export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
       pipelineVelocity: 0,
       pipelineContribution: 0
     });
-
-    // Calculate averages and rates for totals
-    totals.acv = totals.totalClosedWonOpps > 0 
-      ? totals.totalClosedWonRevenue / totals.totalClosedWonOpps 
-      : 0;
-    
-    totals.winRate = totals.totalOppsCreated > 0 
-      ? (totals.totalClosedWonOpps / totals.totalOppsCreated) * 100 
-      : 0;
-
-    totals.closedWonAvgSalesCycle = summary.reduce((acc, curr) => 
-      acc + (curr.closedWonAvgSalesCycle * curr.totalClosedWonOpps), 0
-    ) / Math.max(totals.totalClosedWonOpps, 1);
-
-    // Format numbers for display
-    summary = summary.map(row => ({
-      ...row,
-      totalClosedWonRevenue: Number(row.totalClosedWonRevenue.toFixed(2)),
-      acv: Number(row.acv.toFixed(2)),
-      winRate: Number(row.winRate.toFixed(2)),
-      pipelineVelocity: Number(row.pipelineVelocity.toFixed(2)),
-      pipelineContribution: Number(row.pipelineContribution.toFixed(2))
-    }));
 
     totals.totalClosedWonRevenue = Number(totals.totalClosedWonRevenue.toFixed(2));
     totals.acv = Number(totals.acv.toFixed(2));
