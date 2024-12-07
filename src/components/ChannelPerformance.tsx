@@ -13,10 +13,12 @@ interface ChannelPerformanceProps {
 }
 
 export function ChannelPerformance({ data }: ChannelPerformanceProps) {
-  const formattedData = data.map(item => ({
-    ...item,
-    revenue: item.revenue / 1000, // Convert to thousands for better display
-  }));
+  const formattedData = data
+    .map(item => ({
+      ...item,
+      revenue: item.revenue / 1000, // Convert to thousands for better display
+    }))
+    .sort((a, b) => b.revenue - a.revenue); // Sort in descending order by revenue
 
   return (
     <div className="h-[300px] w-full">
