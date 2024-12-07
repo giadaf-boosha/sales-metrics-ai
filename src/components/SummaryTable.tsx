@@ -11,8 +11,7 @@ import { TableRowComponent } from './TableRow';
 
 interface SummaryTableProps {
   data?: any[];
-  meetingMonth?: number;
-  contractMonth?: number;
+  currentMonth: number;
 }
 
 type SortConfig = {
@@ -23,18 +22,14 @@ type SortConfig = {
 const getMonthFromDate = (dateStr: string): number => {
   if (!dateStr || typeof dateStr !== 'string') return 0;
   
-  // Rimuove eventuali spazi bianchi
   const cleanDate = dateStr.trim();
   
-  // Se la data è vuota dopo il trim
   if (!cleanDate) return 0;
   
   try {
-    // Gestisce sia il formato DD/MM/YYYY che DD/MM/YY
     const [day, month] = cleanDate.split('/');
     const monthNum = parseInt(month, 10);
     
-    // Verifica che il mese sia valido (1-12)
     if (monthNum >= 1 && monthNum <= 12) {
       return monthNum;
     }
@@ -45,7 +40,7 @@ const getMonthFromDate = (dateStr: string): number => {
   }
 };
 
-export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTableProps) {
+export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   const mappedData = React.useMemo(() => {
@@ -76,18 +71,18 @@ export function SummaryTable({ data, meetingMonth, contractMonth }: SummaryTable
         Note: row[20] || ''
       }))
       .filter(row => {
-        // Estrai i mesi dalle date
         const meetingDateMonth = getMonthFromDate(row['Meeting Fissato']);
         const contractDateMonth = getMonthFromDate(row['Contratti Chiusi']);
+        const offerDateMonth = getMonthFromDate(row['Offerte Inviate']);
+        const analysiDateMonth = getMonthFromDate(row['Analisi Firmate']);
         
-        // Applica i filtri solo se sono specificati
-        const meetingMatch = !meetingMonth || meetingDateMonth === meetingMonth;
-        const contractMatch = !contractMonth || contractDateMonth === contractMonth;
-        
-        // Ritorna true solo se entrambe le condizioni sono soddisfatte
-        return meetingMatch && contractMatch;
+        // Una riga è valida se almeno una delle date corrisponde al mese selezionato
+        return meetingDateMonth === currentMonth || 
+               contractDateMonth === currentMonth ||
+               offerDateMonth === currentMonth ||
+               analysiDateMonth === currentMonth;
       });
-  }, [data, meetingMonth, contractMonth]);
+  }, [data, currentMonth]);
 
   const channelSummary = React.useMemo(() => {
     if (!mappedData.length) return [];

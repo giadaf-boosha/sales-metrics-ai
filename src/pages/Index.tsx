@@ -14,17 +14,14 @@ import { Progress } from "@/components/ui/progress";
 import { KPISection } from "@/components/KPISection";
 
 const Index = () => {
-  const [timeRange, setTimeRange] = useState("month");
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
-  const [meetingMonth, setMeetingMonth] = useState<number | undefined>(undefined);
-  const [contractMonth, setContractMonth] = useState<number | undefined>(undefined);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
   
   const { data: rawData, isLoading, error } = useQuery({
-    queryKey: ["sales", timeRange],
-    queryFn: () => fetchSalesData(timeRange, (progress, message) => {
+    queryKey: ["sales", currentMonth],
+    queryFn: () => fetchSalesData(currentMonth, (progress, message) => {
       setLoadingProgress(progress);
       setLoadingMessage(message);
     }),
@@ -65,22 +62,25 @@ const Index = () => {
     navigate("/login");
   };
 
-  const handleFilterChange = (value: string) => {
-    setTimeRange(value);
-    toast.info(`Updating dashboard for period: ${value}`, { duration: 2000 });
-  };
-
   const handleMonthChange = (month: number) => {
     setCurrentMonth(month);
+    toast.info(`Aggiornamento dashboard per ${months[month - 1].label}`, { duration: 2000 });
   };
 
-  const handleDateFilterChange = (type: string, month: number) => {
-    if (type === 'meeting') {
-      setMeetingMonth(month);
-    } else if (type === 'contract') {
-      setContractMonth(month);
-    }
-  };
+  const months = [
+    { value: 1, label: "Gennaio" },
+    { value: 2, label: "Febbraio" },
+    { value: 3, label: "Marzo" },
+    { value: 4, label: "Aprile" },
+    { value: 5, label: "Maggio" },
+    { value: 6, label: "Giugno" },
+    { value: 7, label: "Luglio" },
+    { value: 8, label: "Agosto" },
+    { value: 9, label: "Settembre" },
+    { value: 10, label: "Ottobre" },
+    { value: 11, label: "Novembre" },
+    { value: 12, label: "Dicembre" },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
@@ -97,9 +97,8 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-4">
               <TimeRangeFilter 
-                onFilterChange={handleFilterChange}
                 onMonthChange={handleMonthChange}
-                onDateFilterChange={handleDateFilterChange}
+                currentMonth={currentMonth}
               />
               <button
                 onClick={handleLogout}
@@ -135,14 +134,12 @@ const Index = () => {
           <>
             <KPISection 
               salesData={salesData} 
-              meetingMonth={meetingMonth}
-              contractMonth={contractMonth}
+              currentMonth={currentMonth}
             />
             <div className="mt-8">
               <SummaryTable 
                 data={rawData} 
-                meetingMonth={meetingMonth}
-                contractMonth={contractMonth}
+                currentMonth={currentMonth}
               />
             </div>
           </>

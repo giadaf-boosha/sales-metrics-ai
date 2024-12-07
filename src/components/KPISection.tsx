@@ -5,8 +5,7 @@ import { calculateChannelKPIs } from "@/utils/salesKpiCalculations";
 
 interface KPISectionProps {
   salesData: SalesData[] | undefined;
-  meetingMonth?: number;
-  contractMonth?: number;
+  currentMonth: number;
 }
 
 const getMonthFromDate = (dateStr: string): number => {
@@ -27,20 +26,23 @@ const getMonthFromDate = (dateStr: string): number => {
   }
 };
 
-export function KPISection({ salesData, meetingMonth, contractMonth }: KPISectionProps) {
+export function KPISection({ salesData, currentMonth }: KPISectionProps) {
   const filteredData = React.useMemo(() => {
     if (!salesData) return undefined;
     
     return salesData.filter(row => {
       const meetingDateMonth = getMonthFromDate(row['Meeting Fissato']);
       const contractDateMonth = getMonthFromDate(row['Contratti Chiusi']);
+      const offerDateMonth = getMonthFromDate(row['Offerte Inviate']);
+      const analysiDateMonth = getMonthFromDate(row['Analisi Firmate']);
       
-      const meetingMatch = !meetingMonth || meetingDateMonth === meetingMonth;
-      const contractMatch = !contractMonth || contractDateMonth === contractMonth;
-      
-      return meetingMatch && contractMatch;
+      // Una riga è valida se almeno una delle date corrisponde al mese selezionato
+      return meetingDateMonth === currentMonth || 
+             contractDateMonth === currentMonth ||
+             offerDateMonth === currentMonth ||
+             analysiDateMonth === currentMonth;
     });
-  }, [salesData, meetingMonth, contractMonth]);
+  }, [salesData, currentMonth]);
 
   const kpiData = filteredData ? (() => {
     const allChannelsKPIs = calculateChannelKPIs(filteredData);
