@@ -5,11 +5,45 @@ import { calculateChannelKPIs } from "@/utils/salesKpiCalculations";
 
 interface KPISectionProps {
   salesData: SalesData[] | undefined;
+  meetingMonth?: number;
+  contractMonth?: number;
 }
 
-export function KPISection({ salesData }: KPISectionProps) {
-  const kpiData = salesData ? (() => {
-    const allChannelsKPIs = calculateChannelKPIs(salesData);
+const getMonthFromDate = (dateStr: string): number => {
+  if (!dateStr || typeof dateStr !== 'string') return 0;
+  const cleanDate = dateStr.trim();
+  if (!cleanDate) return 0;
+  
+  try {
+    const [day, month] = cleanDate.split('/');
+    const monthNum = parseInt(month, 10);
+    if (monthNum >= 1 && monthNum <= 12) {
+      return monthNum;
+    }
+    return 0;
+  } catch (error) {
+    console.error('Error parsing date:', dateStr);
+    return 0;
+  }
+};
+
+export function KPISection({ salesData, meetingMonth, contractMonth }: KPISectionProps) {
+  const filteredData = React.useMemo(() => {
+    if (!salesData) return undefined;
+    
+    return salesData.filter(row => {
+      const meetingDateMonth = getMonthFromDate(row['Meeting Fissato']);
+      const contractDateMonth = getMonthFromDate(row['Contratti Chiusi']);
+      
+      const meetingMatch = !meetingMonth || meetingDateMonth === meetingMonth;
+      const contractMatch = !contractMonth || contractDateMonth === contractMonth;
+      
+      return meetingMatch && contractMatch;
+    });
+  }, [salesData, meetingMonth, contractMonth]);
+
+  const kpiData = filteredData ? (() => {
+    const allChannelsKPIs = calculateChannelKPIs(filteredData);
     const totals = allChannelsKPIs.reduce((acc, channel) => ({
       totalOppsCreated: acc.totalOppsCreated + channel.totalOppsCreated,
       totalClosedLostOpps: acc.totalClosedLostOpps + channel.totalClosedLostOpps,

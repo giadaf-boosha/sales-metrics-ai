@@ -133,7 +133,11 @@ const Index = () => {
 
         {!error && salesData && (
           <>
-            <KPISection salesData={salesData} />
+            <KPISection 
+              salesData={salesData} 
+              meetingMonth={meetingMonth}
+              contractMonth={contractMonth}
+            />
             <div className="mt-8">
               <SummaryTable 
                 data={rawData} 
