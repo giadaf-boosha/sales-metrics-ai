@@ -52,10 +52,10 @@ export function AdvancedKPISection({ salesData, currentMonth }: AdvancedKPISecti
           <h3 className="text-lg font-semibold mb-4">Total Opportunities Created & Trend</h3>
           <TrendChart data={kpis.opportunitiesTrend} />
         </Card>
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Deal Conversion Funnel</h3>
-          <DealFunnel data={kpis.funnelData} />
-        </Card>
+        <DealFunnel 
+          salesData={salesData}
+          currentMonth={currentMonth}
+        />
       </div>
 
       {/* Channel and Product Performance */}
