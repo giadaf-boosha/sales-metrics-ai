@@ -33,7 +33,7 @@ export function ChannelChart({ data }: ChannelChartProps) {
 
   return (
     <div className="h-[400px] w-full rounded-xl bg-white p-6 shadow-sm animate-fade-in">
-      <h3 className="mb-6 text-lg font-semibold">Channel Performance</h3>
+      <h3 className="mb-6 text-lg font-semibold">Channel Performance 🚀</h3>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={channelData}
