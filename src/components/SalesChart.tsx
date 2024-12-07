@@ -9,12 +9,12 @@ import {
 } from "recharts";
 
 const data = [
-  { month: "Jan", sales: 4000 },
-  { month: "Feb", sales: 3000 },
-  { month: "Mar", sales: 2000 },
-  { month: "Apr", sales: 2780 },
-  { month: "May", sales: 1890 },
-  { month: "Jun", sales: 2390 },
+  { month: "Jan", sales: 0 },
+  { month: "Feb", sales: 0 },
+  { month: "Mar", sales: 0 },
+  { month: "Apr", sales: 0 },
+  { month: "May", sales: 0 },
+  { month: "Jun", sales: 0 },
 ];
 
 export function SalesChart() {
