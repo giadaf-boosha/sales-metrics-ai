@@ -3,7 +3,7 @@ import {
   Table,
   TableBody,
 } from '@/components/ui/table';
-import { calculateChannelKPIs } from '../utils/salesKpiCalculations';
+import { calculateChannelKPIs, calculateTotalKPIs } from '../utils/salesKpiCalculations';
 import { SalesData, ChannelKPI } from '../types/sales';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import { TableHeaderComponent } from './TableHeader';
@@ -19,26 +19,8 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 } | null;
 
-const getMonthFromDate = (dateStr: string): number => {
-  if (!dateStr || typeof dateStr !== 'string') return 0;
-  
-  const cleanDate = dateStr.trim();
-  
-  if (!cleanDate) return 0;
-  
-  try {
-    const [day, month] = cleanDate.split('/');
-    const monthNum = parseInt(month, 10);
-    
-    if (monthNum >= 1 && monthNum <= 12) {
-      return monthNum;
-    }
-    return 0;
-  } catch (error) {
-    console.error('Error parsing date:', dateStr);
-    return 0;
-  }
-};
+export function SummaryTable({ data, currentMonth }: SummaryTableProps) {
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
 
   const mappedData = React.useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -86,38 +68,9 @@ const getMonthFromDate = (dateStr: string): number => {
       });
     }
 
-    // Calculate totals
-    const totals = summary.reduce((acc, curr) => ({
-      source: 'Total',
-      totalOppsCreated: acc.totalOppsCreated + curr.totalOppsCreated,
-      totalClosedLostOpps: acc.totalClosedLostOpps + curr.totalClosedLostOpps,
-      totalClosedWonOpps: acc.totalClosedWonOpps + curr.totalClosedWonOpps,
-      totalClosedWonRevenue: acc.totalClosedWonRevenue + curr.totalClosedWonRevenue,
-      acv: 0,
-      closedWonAvgSalesCycle: 0,
-      winRate: 0,
-      pipelineVelocity: 0,
-      pipelineContribution: 100
-    }), {
-      source: 'Total',
-      totalOppsCreated: 0,
-      totalClosedLostOpps: 0,
-      totalClosedWonOpps: 0,
-      totalClosedWonRevenue: 0,
-      acv: 0,
-      closedWonAvgSalesCycle: 0,
-      winRate: 0,
-      pipelineVelocity: 0,
-      pipelineContribution: 0
-    });
-
-    totals.totalClosedWonRevenue = Number(totals.totalClosedWonRevenue.toFixed(2));
-    totals.acv = Number(totals.acv.toFixed(2));
-    totals.winRate = Number(totals.winRate.toFixed(2));
-    totals.pipelineVelocity = Number(totals.pipelineVelocity.toFixed(2));
-    totals.pipelineContribution = Number(totals.pipelineContribution.toFixed(2));
-
-    return [...summary, totals];
+    // Usa calculateTotalKPIs invece di calcolare i totali dalla somma
+    const totals = calculateTotalKPIs(mappedData, currentMonth);
+    return [...summary.filter(item => item.source !== 'Total'), totals];
   }, [mappedData, sortConfig, currentMonth]);
 
   const handleSort = (key: keyof ChannelKPI) => {
