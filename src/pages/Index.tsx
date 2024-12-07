@@ -1,4 +1,3 @@
-import { KpiCard } from "@/components/KpiCard";
 import { TimeRangeFilter } from "@/components/TimeRangeFilter";
 import { GoogleSheetsConfig } from "@/components/GoogleSheetsConfig";
 import { SummaryTable } from "@/components/SummaryTable";
@@ -10,9 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { calculateChannelKPIs } from "@/utils/salesKpiCalculations";
 import { SalesData } from "@/types/sales";
 import { Progress } from "@/components/ui/progress";
+import { KPISection } from "@/components/KPISection";
 
 const Index = () => {
   const [timeRange, setTimeRange] = useState("month");
@@ -39,7 +38,7 @@ const Index = () => {
 
   const salesData = rawData?.map((row): SalesData => ({
     ID: row[0] || '',
-    Sales: row[1] || '',
+    'Nome Persona': row[1] || '',
     Canale: row[2] || '',
     'Meeting Fissato': row[3] || '',
     'Meeting Effettuato (SQL)': row[4] || '',
@@ -47,16 +46,16 @@ const Index = () => {
     'Analisi Firmate': row[6] || '',
     'Contratti Chiusi': row[7] || '',
     Persi: row[8] || '',
-    SQL: row[9] || '',
-    Stato: row[10] || '',
-    Servizio: row[11] || '',
-    'Valore Tot €': row[12] || '',
-    Azienda: row[13] || '',
-    'Nome Persona': row[14] || '',
-    Ruolo: row[15] || '',
-    Dimensioni: row[16] || '',
-    Settore: row[17] || '',
-    'Come mai ha accettato?': row[18] || '',
+    Sales: row[9] || '',
+    Azienda: row[10] || '',
+    SQL: row[11] || '',
+    Stato: row[12] || '',
+    Servizio: row[13] || '',
+    'Valore Tot €': row[14] || '',
+    Settore: row[15] || '',
+    'Come mai ha accettato?': row[16] || '',
+    Ruolo: row[17] || '',
+    Dimensioni: row[18] || '',
     Obiezioni: row[19] || '',
     Note: row[20] || ''
   }));
@@ -65,76 +64,6 @@ const Index = () => {
     await supabase.auth.signOut();
     navigate("/login");
   };
-
-  const kpiData = salesData ? (() => {
-    const allChannelsKPIs = calculateChannelKPIs(salesData);
-    const totals = allChannelsKPIs.reduce((acc, channel) => ({
-      totalOppsCreated: acc.totalOppsCreated + channel.totalOppsCreated,
-      totalClosedLostOpps: acc.totalClosedLostOpps + channel.totalClosedLostOpps,
-      totalClosedWonOpps: acc.totalClosedWonOpps + channel.totalClosedWonOpps,
-      totalClosedWonRevenue: acc.totalClosedWonRevenue + channel.totalClosedWonRevenue,
-    }), {
-      totalOppsCreated: 0,
-      totalClosedLostOpps: 0,
-      totalClosedWonOpps: 0,
-      totalClosedWonRevenue: 0,
-    });
-
-    const avgSalesCycle = allChannelsKPIs.reduce((acc, channel) => 
-      acc + (channel.closedWonAvgSalesCycle * channel.totalClosedWonOpps), 0
-    ) / Math.max(totals.totalClosedWonOpps, 1);
-
-    const winRate = totals.totalOppsCreated > 0 
-      ? (totals.totalClosedWonOpps / totals.totalOppsCreated) * 100 
-      : 0;
-
-    const acv = totals.totalClosedWonOpps > 0 
-      ? totals.totalClosedWonRevenue / totals.totalClosedWonOpps 
-      : 0;
-
-    const pipelineVelocity = avgSalesCycle > 0
-      ? (totals.totalOppsCreated * (winRate / 100) * acv) / (avgSalesCycle / 365)
-      : 0;
-
-    return {
-      totalOppsCreated: {
-        value: totals.totalOppsCreated,
-        title: "Total Opps. Created",
-      },
-      totalClosedLostOpps: {
-        value: totals.totalClosedLostOpps,
-        title: "Total Closed Lost Opps.",
-      },
-      totalClosedWonOpps: {
-        value: totals.totalClosedWonOpps,
-        title: "Total Closed Won Opps.",
-      },
-      totalClosedWonRevenue: {
-        value: `€${totals.totalClosedWonRevenue.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
-        title: "Total Closed Won Revenue",
-      },
-      acv: {
-        value: `€${acv.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
-        title: "ACV",
-      },
-      avgSalesCycle: {
-        value: `${Math.round(avgSalesCycle)} giorni`,
-        title: "Closed Won Avg. Sales Cycle",
-      },
-      winRate: {
-        value: `${winRate.toFixed(2)}%`,
-        title: "Win Rate",
-      },
-      pipelineVelocity: {
-        value: `€${pipelineVelocity.toLocaleString('it-IT', { minimumFractionDigits: 2 })}`,
-        title: "Pipeline Velocity",
-      },
-      pipelineContribution: {
-        value: "100%",
-        title: "% of Pipeline Contribution",
-      },
-    };
-  })() : null;
 
   const handleFilterChange = (value: string) => {
     setTimeRange(value);
@@ -202,19 +131,9 @@ const Index = () => {
           </Alert>
         )}
 
-        {!error && kpiData && (
+        {!error && salesData && (
           <>
-            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {Object.entries(kpiData).map(([key, kpi], index) => (
-                <KpiCard
-                  key={key}
-                  title={kpi.title}
-                  value={kpi.value}
-                  className={`animate-fade-in [animation-delay:${index * 100}ms]`}
-                />
-              ))}
-            </div>
-
+            <KPISection salesData={salesData} />
             <div className="mt-8">
               <SummaryTable 
                 data={rawData} 
